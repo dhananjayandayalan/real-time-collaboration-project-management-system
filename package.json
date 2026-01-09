@@ -1,0 +1,60 @@
+{
+  "name": "real-time-collaboration-project-management-system",
+  "version": "1.0.0",
+  "description": "A real-time collaboration project management system built with React, Node.js, TypeScript, and microservices architecture",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev:auth\" \"npm run dev:project\" \"npm run dev:task\" \"npm run dev:realtime\" \"npm run dev:client\"",
+    "dev:auth": "npm run dev --workspace=apps/auth-service",
+    "dev:project": "npm run dev --workspace=apps/project-service",
+    "dev:task": "npm run dev --workspace=apps/task-service",
+    "dev:realtime": "npm run dev --workspace=apps/realtime-service",
+    "dev:client": "npm run dev --workspace=apps/client",
+    "build": "npm run build --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "test:coverage": "npm run test:coverage --workspaces --if-present",
+    "test:watch": "npm run test:watch --workspaces --if-present",
+    "lint": "npm run lint --workspaces --if-present",
+    "format": "prettier --write \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "format:check": "prettier --check \"**/*.{ts,tsx,js,jsx,json,css,md}\"",
+    "migrate:dev": "npm run migrate:dev --workspaces --if-present",
+    "migrate:deploy": "npm run migrate:deploy --workspaces --if-present",
+    "migrate:reset": "npm run migrate:reset --workspaces --if-present",
+    "seed": "npm run seed --workspaces --if-present",
+    "docker:up": "docker-compose up -d",
+    "docker:down": "docker-compose down",
+    "docker:logs": "docker-compose logs -f",
+    "docker:clean": "docker-compose down -v",
+    "typecheck": "npm run typecheck --workspaces --if-present"
+  },
+  "keywords": [
+    "project-management",
+    "real-time",
+    "collaboration",
+    "microservices",
+    "typescript",
+    "react",
+    "nodejs",
+    "websocket",
+    "redux",
+    "prisma",
+    "postgresql",
+    "redis"
+  ],
+  "author": "Dhananjayan D <dhananjayan.dayalan@gmail.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "concurrently": "^8.2.2",
+    "prettier": "^3.1.0",
+    "typescript": "^5.3.3"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  }
+}

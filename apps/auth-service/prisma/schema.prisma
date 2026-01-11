@@ -1,0 +1,109 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum UserStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+// User Model
+model User {
+  id              String      @id @default(uuid())
+  email           String      @unique
+  password        String
+  firstName       String
+  lastName        String
+  avatar          String?
+  isEmailVerified Boolean     @default(false)
+  status          UserStatus  @default(ACTIVE)
+  lastLoginAt     DateTime?
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+
+  // Relations
+  userRoles       UserRole[]
+  assignedRoles   UserRole[]  @relation("AssignedBy")
+
+  @@index([email])
+  @@map("users")
+}
+
+// Role Model
+model Role {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  userRoles       UserRole[]
+  rolePermissions RolePermission[]
+
+  @@index([name])
+  @@map("roles")
+}
+
+// Permission Model
+model Permission {
+  id          String   @id @default(uuid())
+  name        String   @unique
+  resource    String
+  action      String
+  description String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  rolePermissions RolePermission[]
+
+  @@unique([resource, action])
+  @@index([resource])
+  @@index([action])
+  @@map("permissions")
+}
+
+// User-Role Join Table (Many-to-Many)
+model UserRole {
+  userId     String
+  roleId     String
+  assignedAt DateTime  @default(now())
+  assignedBy String?
+
+  // Relations
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role       Role      @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  assignedByUser User? @relation("AssignedBy", fields: [assignedBy], references: [id])
+
+  @@id([userId, roleId])
+  @@index([userId])
+  @@index([roleId])
+  @@map("user_roles")
+}
+
+// Role-Permission Join Table (Many-to-Many)
+model RolePermission {
+  roleId       String
+  permissionId String
+  createdAt    DateTime @default(now())
+
+  // Relations
+  role         Role       @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  permission   Permission @relation(fields: [permissionId], references: [id], onDelete: Cascade)
+
+  @@id([roleId, permissionId])
+  @@index([roleId])
+  @@index([permissionId])
+  @@map("role_permissions")
+}

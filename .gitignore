@@ -21,6 +21,7 @@ build/
 logs/
 *.log
 lerna-debug.log*
+nul
 
 # OS files
 .DS_Store

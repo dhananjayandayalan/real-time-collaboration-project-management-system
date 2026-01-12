@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum ProjectStatus {
+  ACTIVE
+  ARCHIVED
+  ON_HOLD
+  COMPLETED
+}
+
+enum ProjectMemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+// Workspace Model
+model Workspace {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  slug        String   @unique
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  projects    Project[]
+
+  @@index([ownerId])
+  @@index([slug])
+  @@map("workspaces")
+}
+
+// Project Model
+model Project {
+  id          String        @id @default(uuid())
+  name        String
+  description String?
+  key         String        @unique
+  workspaceId String
+  status      ProjectStatus @default(ACTIVE)
+  createdBy   String
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  // Relations
+  workspace Workspace        @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  members   ProjectMember[]
+
+  @@index([workspaceId])
+  @@index([key])
+  @@index([createdBy])
+  @@index([status])
+  @@map("projects")
+}
+
+// Project Member Model (Many-to-Many Join Table)
+model ProjectMember {
+  projectId String
+  userId    String
+  role      ProjectMemberRole @default(MEMBER)
+  addedAt   DateTime          @default(now())
+  addedBy   String?
+
+  // Relations
+  project Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@id([projectId, userId])
+  @@index([projectId])
+  @@index([userId])
+  @@index([role])
+  @@map("project_members")
+}

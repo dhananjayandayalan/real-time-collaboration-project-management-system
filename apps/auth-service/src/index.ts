@@ -2,6 +2,8 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth.routes';
+import roleRoutes from './routes/role.routes';
+import permissionRoutes from './routes/permission.routes';
 import testRoutes from './routes/test.routes';
 import './config/redis'; // Initialize Redis connection
 
@@ -21,6 +23,8 @@ app.get('/health', (_req, res) => {
 
 // API routes
 app.use('/api/auth', authRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/permissions', permissionRoutes);
 app.use('/api/test', testRoutes); // Test routes for middleware demonstration
 
 // 404 handler

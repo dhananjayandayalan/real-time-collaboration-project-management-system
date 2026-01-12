@@ -175,6 +175,89 @@ export const checkPermission = (resource: string, action: string) => {
 };
 
 /**
+ * Require specific permission by name
+ *
+ * Simpler version of checkPermission that takes the full permission name (e.g., 'role:read').
+ *
+ * Usage:
+ * app.get('/api/roles', authenticateToken, requirePermission('role:read'), controller);
+ *
+ * @param permissionName - The permission name (e.g., 'role:read', 'user:create')
+ */
+export const requirePermission = (permissionName: string) => {
+  return async (req: Request, res: Response, next: NextFunction): Promise<void> => {
+    try {
+      // Check if user is authenticated
+      if (!req.user) {
+        res.status(401).json({
+          success: false,
+          message: 'Authentication required',
+        });
+        return;
+      }
+
+      // Fetch user with roles and permissions
+      const userWithPermissions = await prisma.user.findUnique({
+        where: { id: req.user.userId },
+        include: {
+          userRoles: {
+            include: {
+              role: {
+                include: {
+                  rolePermissions: {
+                    include: {
+                      permission: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      });
+
+      if (!userWithPermissions) {
+        res.status(404).json({
+          success: false,
+          message: 'User not found',
+        });
+        return;
+      }
+
+      // Collect all permissions from all user's roles
+      const userPermissions: string[] = [];
+
+      userWithPermissions.userRoles.forEach((userRole) => {
+        userRole.role.rolePermissions.forEach((rolePermission) => {
+          userPermissions.push(rolePermission.permission.name);
+        });
+      });
+
+      // Check if user has the required permission
+      const hasPermission = userPermissions.includes(permissionName);
+
+      if (!hasPermission) {
+        res.status(403).json({
+          success: false,
+          message: 'Insufficient permissions',
+          required: permissionName,
+        });
+        return;
+      }
+
+      // User has required permission, proceed
+      next();
+    } catch (error) {
+      console.error('Permission check error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Permission check failed',
+      });
+    }
+  };
+};
+
+/**
  * Check if user owns the resource
  *
  * Useful for ensuring users can only access/modify their own data.

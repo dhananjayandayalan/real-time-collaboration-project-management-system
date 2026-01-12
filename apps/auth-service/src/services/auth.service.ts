@@ -6,6 +6,12 @@ import {
   generateRefreshToken,
   verifyRefreshToken,
 } from '../utils/jwt';
+import {
+  generateResetToken,
+  hashResetToken,
+  getResetTokenExpiration,
+} from '../utils/resetToken';
+import emailService from './email.service';
 
 export interface RegisterData {
   email: string;
@@ -314,6 +320,124 @@ export class AuthService {
 
     // Invalidate all refresh tokens for security
     await redisClient.del(`refresh_token:${userId}`);
+  }
+
+  // Request password reset
+  async forgotPassword(email: string): Promise<void> {
+    // Find user by email
+    const user = await prisma.user.findUnique({
+      where: { email },
+    });
+
+    // For security, don't reveal if email exists or not
+    // Always return success to prevent email enumeration
+    if (!user) {
+      return;
+    }
+
+    // Check if user is active
+    if (user.status !== 'ACTIVE') {
+      return;
+    }
+
+    // Invalidate any existing unused reset tokens for this user
+    await prisma.passwordReset.updateMany({
+      where: {
+        userId: user.id,
+        used: false,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+      data: {
+        used: true,
+      },
+    });
+
+    // Generate reset token
+    const resetToken = generateResetToken();
+    const hashedToken = hashResetToken(resetToken);
+    const expiresAt = getResetTokenExpiration();
+
+    // Store reset token in database
+    await prisma.passwordReset.create({
+      data: {
+        userId: user.id,
+        token: hashedToken,
+        expiresAt,
+      },
+    });
+
+    // Send reset email
+    try {
+      await emailService.sendPasswordResetEmail(user.email, resetToken);
+    } catch (error) {
+      console.error('Failed to send password reset email:', error);
+      // Delete the token if email fails
+      await prisma.passwordReset.deleteMany({
+        where: {
+          userId: user.id,
+          token: hashedToken,
+        },
+      });
+      throw new Error('Failed to send password reset email');
+    }
+  }
+
+  // Reset password with token
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    // Hash the token to compare with stored hash
+    const hashedToken = hashResetToken(token);
+
+    // Find valid reset token
+    const resetRecord = await prisma.passwordReset.findFirst({
+      where: {
+        token: hashedToken,
+        used: false,
+        expiresAt: {
+          gt: new Date(),
+        },
+      },
+    });
+
+    if (!resetRecord) {
+      throw new Error('Invalid or expired reset token');
+    }
+
+    // Get user
+    const user = await prisma.user.findUnique({
+      where: { id: resetRecord.userId },
+    });
+
+    if (!user) {
+      throw new Error('User not found');
+    }
+
+    // Hash new password
+    const hashedPassword = await hashPassword(newPassword);
+
+    // Update password and mark token as used in a transaction
+    await prisma.$transaction([
+      prisma.user.update({
+        where: { id: user.id },
+        data: { password: hashedPassword },
+      }),
+      prisma.passwordReset.update({
+        where: { id: resetRecord.id },
+        data: { used: true },
+      }),
+    ]);
+
+    // Invalidate all refresh tokens for security
+    await redisClient.del(`refresh_token:${user.id}`);
+
+    // Send confirmation email
+    try {
+      await emailService.sendPasswordChangedEmail(user.email, user.firstName);
+    } catch (error) {
+      console.error('Failed to send password changed email:', error);
+      // Don't throw error here, password was already changed successfully
+    }
   }
 }
 

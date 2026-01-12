@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import { hashPassword } from '../src/utils/password';
 
 const prisma = new PrismaClient();
 
@@ -51,9 +52,18 @@ async function main() {
     { name: 'task:update', resource: 'task', action: 'update', description: 'Update task information' },
     { name: 'task:delete', resource: 'task', action: 'delete', description: 'Delete tasks' },
 
-    // Role permissions
+    // Role management permissions
+    { name: 'role:create', resource: 'role', action: 'create', description: 'Create new roles' },
+    { name: 'role:read', resource: 'role', action: 'read', description: 'View roles' },
+    { name: 'role:update', resource: 'role', action: 'update', description: 'Update roles' },
+    { name: 'role:delete', resource: 'role', action: 'delete', description: 'Delete roles' },
     { name: 'role:assign', resource: 'role', action: 'assign', description: 'Assign roles to users' },
     { name: 'role:revoke', resource: 'role', action: 'revoke', description: 'Revoke roles from users' },
+
+    // Permission management permissions
+    { name: 'permission:read', resource: 'permission', action: 'read', description: 'View permissions' },
+    { name: 'permission:assign', resource: 'permission', action: 'assign', description: 'Assign permissions to roles' },
+    { name: 'permission:revoke', resource: 'permission', action: 'revoke', description: 'Revoke permissions from roles' },
   ];
 
   // Role-Permission mappings
@@ -63,7 +73,8 @@ async function main() {
       'workspace:create', 'workspace:read', 'workspace:update', 'workspace:delete',
       'project:create', 'project:read', 'project:update', 'project:delete',
       'task:create', 'task:read', 'task:update', 'task:delete',
-      'role:assign', 'role:revoke',
+      'role:create', 'role:read', 'role:update', 'role:delete', 'role:assign', 'role:revoke',
+      'permission:read', 'permission:assign', 'permission:revoke',
     ],
     MANAGER: [
       'user:read',
@@ -140,6 +151,43 @@ async function main() {
       });
     }
     console.log(`  ✓ Assigned ${permissionNames.length} permissions to ${roleName}`);
+  }
+
+  // Create default admin user
+  console.log('\n👤 Creating default admin user...');
+  const hashedPassword = await hashPassword('Admin@123456');
+
+  const adminUser = await prisma.user.upsert({
+    where: { email: 'admin@projectmgmt.com' },
+    update: {},
+    create: {
+      email: 'admin@projectmgmt.com',
+      password: hashedPassword,
+      firstName: 'System',
+      lastName: 'Admin',
+      isEmailVerified: true,
+      status: 'ACTIVE',
+    },
+  });
+  console.log(`  ✓ Created admin user: admin@projectmgmt.com (password: Admin@123456)`);
+
+  // Assign ADMIN role to admin user
+  const adminRoleId = createdRoles.get('ADMIN');
+  if (adminRoleId) {
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: {
+          userId: adminUser.id,
+          roleId: adminRoleId,
+        },
+      },
+      update: {},
+      create: {
+        userId: adminUser.id,
+        roleId: adminRoleId,
+      },
+    });
+    console.log('  ✓ Assigned ADMIN role to admin user');
   }
 
   console.log('\n✅ Database seeding completed successfully!');

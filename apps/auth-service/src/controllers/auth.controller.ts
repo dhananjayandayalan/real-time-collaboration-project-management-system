@@ -6,6 +6,8 @@ import {
   refreshTokenSchema,
   updateProfileSchema,
   changePasswordSchema,
+  forgotPasswordSchema,
+  resetPasswordSchema,
 } from '../utils/validation';
 
 export class AuthController {
@@ -255,6 +257,72 @@ export class AuthController {
       res.status(200).json({
         success: true,
         message: 'Password changed successfully. Please login again.',
+      });
+    } catch (error) {
+      if (error instanceof Error) {
+        res.status(400).json({
+          success: false,
+          message: error.message,
+        });
+      } else {
+        res.status(500).json({
+          success: false,
+          message: 'Internal server error',
+        });
+      }
+    }
+  }
+
+  // Request password reset
+  async forgotPassword(req: Request, res: Response): Promise<void> {
+    try {
+      // Validate request body
+      const { error, value } = forgotPasswordSchema.validate(req.body);
+
+      if (error) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation error',
+          errors: error.details.map((detail) => detail.message),
+        });
+        return;
+      }
+
+      await authService.forgotPassword(value.email);
+
+      // Always return success to prevent email enumeration
+      res.status(200).json({
+        success: true,
+        message: 'If an account exists with this email, a password reset link has been sent.',
+      });
+    } catch (error) {
+      res.status(500).json({
+        success: false,
+        message: 'Internal server error',
+      });
+    }
+  }
+
+  // Reset password with token
+  async resetPassword(req: Request, res: Response): Promise<void> {
+    try {
+      // Validate request body
+      const { error, value } = resetPasswordSchema.validate(req.body);
+
+      if (error) {
+        res.status(400).json({
+          success: false,
+          message: 'Validation error',
+          errors: error.details.map((detail) => detail.message),
+        });
+        return;
+      }
+
+      await authService.resetPassword(value.token, value.newPassword);
+
+      res.status(200).json({
+        success: true,
+        message: 'Password reset successful. Please login with your new password.',
       });
     } catch (error) {
       if (error instanceof Error) {

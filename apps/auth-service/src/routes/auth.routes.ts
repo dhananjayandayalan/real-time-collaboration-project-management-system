@@ -14,6 +14,10 @@ router.post('/login', authLimiter, authController.login.bind(authController));
 router.post('/refresh', refreshTokenLimiter, authController.refreshToken.bind(authController));
 router.post('/logout', authenticateToken, authController.logout.bind(authController));
 
+// Password reset routes
+router.post('/forgot-password', authLimiter, authController.forgotPassword.bind(authController));
+router.post('/reset-password', authLimiter, authController.resetPassword.bind(authController));
+
 // User profile routes (requires authentication)
 router.get('/me', authenticateToken, authController.getCurrentUser.bind(authController));
 router.patch('/me', authenticateToken, authController.updateProfile.bind(authController));

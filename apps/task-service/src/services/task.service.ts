@@ -320,12 +320,25 @@ class TaskService {
    * Delete task
    */
   async deleteTask(id: string): Promise<void> {
+    // Get task info before deleting for Redis event
+    const task = await prisma.task.findUnique({
+      where: { id },
+      select: { id: true, taskId: true, projectId: true },
+    });
+
+    if (!task) {
+      throw new Error('Task not found');
+    }
+
     await prisma.task.delete({
       where: { id },
     });
 
-    // Publish event to Redis
-    await this.publishEvent('task:deleted', { id });
+    // Publish event to Redis with taskId and projectId for routing
+    await this.publishEvent('task:deleted', {
+      taskId: task.taskId,
+      projectId: task.projectId,
+    });
   }
 
   /**

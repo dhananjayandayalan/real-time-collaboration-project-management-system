@@ -9,7 +9,7 @@ import redisClient from './config/redis';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3002;
+const PORT = process.env.PROJECT_SERVICE_PORT || 3002;
 
 // Middleware
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));

@@ -8,7 +8,7 @@ import redisClient, { redisPublisher } from './config/redis';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3003;
+const PORT = process.env.TASK_SERVICE_PORT || 3003;
 
 // Middleware
 app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));

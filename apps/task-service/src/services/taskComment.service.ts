@@ -36,10 +36,21 @@ class TaskCommentService {
       newValue: null,
     });
 
-    // Publish event to Redis
-    await this.publishEvent('task:comment:added', {
+    // Get task's projectId for routing
+    const task = await prisma.task.findUnique({
+      where: { id: data.taskId },
+      select: { projectId: true },
+    });
+
+    // Publish event to Redis (matching channel name expected by realtime service)
+    await this.publishEvent('comment:added', {
+      id: comment.id,
       taskId: data.taskId,
-      comment,
+      projectId: task?.projectId,
+      userId: data.userId,
+      userName: '', // Will be populated by frontend with user data
+      content: comment.content,
+      createdAt: comment.createdAt.toISOString(),
     });
 
     return comment;

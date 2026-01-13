@@ -1,14 +1,13 @@
 function App() {
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center">
-      <div className="text-center">
-        <h1 className="text-4xl font-bold text-gray-900 mb-4">
-          Project Management System
-        </h1>
-        <p className="text-gray-600">
-          Real-time collaboration platform - Coming soon!
-        </p>
-      </div>
+    <div className="container" style={{ padding: '2rem' }}>
+      <h1 style={{ marginBottom: '1rem' }}>Project Management System</h1>
+      <p className="text-gray-600">
+        React 19 + TypeScript + Vite + Vanilla CSS
+      </p>
+      <p className="text-sm text-gray-500" style={{ marginTop: '0.5rem' }}>
+        Frontend foundation ready. Building authentication and core features...
+      </p>
     </div>
   );
 }

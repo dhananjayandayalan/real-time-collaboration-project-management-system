@@ -1,17 +1,19 @@
-@tailwind base;
-@tailwind components;
-@tailwind utilities;
+/* Main CSS entry point - Import order matters! */
 
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
+/* 1. CSS Variables */
+@import './styles/variables.css';
 
-body {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
-    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
-    sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* 2. CSS Reset */
+@import './styles/reset.css';
+
+/* 3. Utility Classes */
+@import './styles/utilities.css';
+
+/* 4. Animations */
+@import './styles/animations.css';
+
+/* Global styles */
+#root {
+  width: 100%;
+  min-height: 100vh;
 }

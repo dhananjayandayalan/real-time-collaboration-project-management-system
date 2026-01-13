@@ -16,7 +16,7 @@ A full-stack real-time collaboration project management system similar to Jira, 
 ## Tech Stack
 
 ### Frontend
-- **React 18** - Modern UI library
+- **React 19** - Modern UI library
 - **TypeScript** - Type-safe JavaScript
 - **Redux Toolkit** - State management
 - **Socket.io Client** - Real-time communication

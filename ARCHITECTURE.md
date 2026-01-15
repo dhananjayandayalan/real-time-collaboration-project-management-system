@@ -7,9 +7,9 @@ A real-time collaboration project management system (similar to Jira) built with
 ### Tech Stack
 
 **Frontend:**
-- React 18 with TypeScript
+- React 19 with TypeScript
 - Redux Toolkit (state management)
-- CSS Modules (styling)
+- Vanilla CSS (styling)
 - Vitest + React Testing Library (testing)
 - Socket.io Client (real-time)
 

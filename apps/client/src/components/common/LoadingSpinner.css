@@ -1,0 +1,62 @@
+.loading-spinner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-sm);
+}
+
+.loading-spinner__svg {
+  animation: spin 1s linear infinite;
+  color: var(--color-primary);
+}
+
+.loading-spinner__circle {
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-dasharray: 90;
+  stroke-dashoffset: 60;
+}
+
+/* Sizes */
+.loading-spinner--sm .loading-spinner__svg {
+  width: 20px;
+  height: 20px;
+}
+
+.loading-spinner--md .loading-spinner__svg {
+  width: 32px;
+  height: 32px;
+}
+
+.loading-spinner--lg .loading-spinner__svg {
+  width: 48px;
+  height: 48px;
+}
+
+.loading-spinner--xl .loading-spinner__svg {
+  width: 64px;
+  height: 64px;
+}
+
+.loading-spinner__text {
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-600);
+}
+
+/* Full screen overlay */
+.loading-spinner__overlay {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-modal);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

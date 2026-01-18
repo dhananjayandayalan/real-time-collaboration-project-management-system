@@ -8,10 +8,8 @@ import './Header.css';
 export const Header: React.FC = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user } = useAppSelector((state) => state.auth);
-  const { isConnected } = useAppSelector((state) => ({
-    isConnected: state.ui.onlineUsers.length > 0, // Simplified - real implementation would use socket context
-  }));
+  const user = useAppSelector((state) => state.auth.user);
+  const isConnected = useAppSelector((state) => state.ui.onlineUsers.length > 0);
 
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);

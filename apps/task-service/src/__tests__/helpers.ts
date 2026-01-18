@@ -1,4 +1,4 @@
-import { TaskStatus, TaskPriority, TaskType } from '@prisma/client';
+import { TaskStatus, TaskPriority, TaskType } from '../../../node_modules/.prisma/task-client';
 
 export const generateUniqueId = (): string => {
   return `${Date.now()}-${Math.random().toString(36).substring(7)}`;

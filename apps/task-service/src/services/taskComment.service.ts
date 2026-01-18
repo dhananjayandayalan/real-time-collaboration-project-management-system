@@ -1,5 +1,5 @@
 import prisma from '../config/prisma';
-import { TaskComment } from '@prisma/client';
+import { TaskComment } from '../../node_modules/.prisma/task-client';
 import { redisPublisher } from '../config/redis';
 import taskHistoryService from './taskHistory.service';
 

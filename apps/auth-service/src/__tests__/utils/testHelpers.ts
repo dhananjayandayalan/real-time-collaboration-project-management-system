@@ -1,4 +1,4 @@
-import { PrismaClient } from '@prisma/client';
+import { PrismaClient } from '../../../../node_modules/.prisma/auth-client';
 import { hashPassword } from '../../utils/password';
 import { generateAccessToken, generateRefreshToken } from '../../utils/jwt';
 

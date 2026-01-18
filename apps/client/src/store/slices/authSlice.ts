@@ -8,14 +8,22 @@ interface AuthState {
   tokens: AuthTokens | null;
   isAuthenticated: boolean;
   isLoading: boolean;
+  isInitialized: boolean;
   error: string | null;
 }
+
+// Check if there's a token in localStorage on initial load
+const hasStoredToken = (): boolean => {
+  if (typeof window === 'undefined') return false;
+  return !!localStorage.getItem('accessToken');
+};
 
 const initialState: AuthState = {
   user: null,
   tokens: null,
-  isAuthenticated: false,
-  isLoading: false,
+  isAuthenticated: hasStoredToken(),
+  isLoading: hasStoredToken(), // Start loading if we have a token to verify
+  isInitialized: !hasStoredToken(), // Already initialized if no token to check
   error: null,
 };
 
@@ -124,6 +132,7 @@ const authSlice = createSlice({
       })
       .addCase(login.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.isInitialized = true;
         state.user = action.payload.user;
         state.tokens = action.payload.tokens;
         state.isAuthenticated = true;
@@ -141,6 +150,7 @@ const authSlice = createSlice({
       })
       .addCase(register.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.isInitialized = true;
         state.user = action.payload.user;
         state.tokens = action.payload.tokens;
         state.isAuthenticated = true;
@@ -155,8 +165,18 @@ const authSlice = createSlice({
       .addCase(logout.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(logout.fulfilled, () => initialState)
-      .addCase(logout.rejected, () => initialState);
+      .addCase(logout.fulfilled, () => ({
+        ...initialState,
+        isAuthenticated: false,
+        isLoading: false,
+        isInitialized: true,
+      }))
+      .addCase(logout.rejected, () => ({
+        ...initialState,
+        isAuthenticated: false,
+        isLoading: false,
+        isInitialized: true,
+      }));
 
     // Get current user
     builder
@@ -166,13 +186,19 @@ const authSlice = createSlice({
       })
       .addCase(getCurrentUser.fulfilled, (state, action) => {
         state.isLoading = false;
+        state.isInitialized = true;
         state.user = action.payload;
         state.isAuthenticated = true;
       })
       .addCase(getCurrentUser.rejected, (state, action) => {
         state.isLoading = false;
+        state.isInitialized = true;
         state.error = action.payload as string;
-        state.isAuthenticated = false;
+        // Only set isAuthenticated to false if tokens are removed
+        // This allows token refresh to be attempted
+        if (!localStorage.getItem('accessToken')) {
+          state.isAuthenticated = false;
+        }
       });
 
     // Refresh tokens
@@ -180,7 +206,12 @@ const authSlice = createSlice({
       .addCase(refreshTokens.fulfilled, (state, action) => {
         state.tokens = action.payload;
       })
-      .addCase(refreshTokens.rejected, () => initialState);
+      .addCase(refreshTokens.rejected, () => ({
+        ...initialState,
+        isAuthenticated: false,
+        isLoading: false,
+        isInitialized: true,
+      }));
   },
 });
 

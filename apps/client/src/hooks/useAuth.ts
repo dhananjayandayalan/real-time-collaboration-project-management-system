@@ -13,15 +13,15 @@ import type { LoginCredentials, RegisterData } from '@/types';
 export const useAuth = () => {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
-  const { user, isAuthenticated, isLoading, error } = useAppSelector((state) => state.auth);
+  const { user, isAuthenticated, isLoading, isInitialized, error } = useAppSelector((state) => state.auth);
 
   // Check for existing session on mount
   useEffect(() => {
     const token = localStorage.getItem('accessToken');
-    if (token && !user && !isLoading) {
+    if (token && !isInitialized) {
       dispatch(getCurrentUser());
     }
-  }, [dispatch, user, isLoading]);
+  }, [dispatch, isInitialized]);
 
   const signIn = useCallback(
     async (credentials: LoginCredentials) => {

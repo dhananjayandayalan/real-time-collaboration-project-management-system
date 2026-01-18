@@ -1,5 +1,5 @@
 import prisma from '../config/prisma';
-import { Workspace } from '@prisma/client';
+import { Workspace } from '../../node_modules/.prisma/project-client';
 
 export interface CreateWorkspaceDto {
   name: string;

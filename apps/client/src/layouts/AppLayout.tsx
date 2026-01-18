@@ -6,10 +6,10 @@ import { Header } from './Header';
 import './AppLayout.css';
 
 export const AppLayout: React.FC = () => {
-  const { isAuthenticated, isLoading } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, isLoading, isInitialized } = useAppSelector((state) => state.auth);
 
-  // Show nothing while checking auth status
-  if (isLoading) {
+  // Show nothing while checking auth status (initial session verification)
+  if (!isInitialized || isLoading) {
     return null;
   }
 

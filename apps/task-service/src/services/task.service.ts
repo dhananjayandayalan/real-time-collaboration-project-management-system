@@ -1,5 +1,5 @@
 import prisma from '../config/prisma';
-import { Task, TaskStatus, TaskPriority, TaskType, Prisma } from '@prisma/client';
+import { Task, TaskStatus, TaskPriority, TaskType, Prisma } from '../../node_modules/.prisma/task-client';
 import { redisPublisher } from '../config/redis';
 import taskHistoryService from './taskHistory.service';
 

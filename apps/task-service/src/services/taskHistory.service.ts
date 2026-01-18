@@ -1,5 +1,5 @@
 import prisma from '../config/prisma';
-import { TaskHistory } from '@prisma/client';
+import { TaskHistory } from '../../node_modules/.prisma/task-client';
 
 export interface CreateHistoryEntryDto {
   taskId: string;

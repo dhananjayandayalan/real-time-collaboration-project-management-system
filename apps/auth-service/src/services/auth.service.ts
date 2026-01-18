@@ -33,8 +33,10 @@ export interface AuthResponse {
     lastName: string;
     avatar: string | null;
   };
-  accessToken: string;
-  refreshToken: string;
+  tokens: {
+    accessToken: string;
+    refreshToken: string;
+  };
 }
 
 export interface UpdateProfileData {
@@ -96,8 +98,10 @@ export class AuthService {
 
     return {
       user,
-      accessToken,
-      refreshToken,
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
     };
   }
 
@@ -152,8 +156,10 @@ export class AuthService {
         lastName: user.lastName,
         avatar: user.avatar,
       },
-      accessToken,
-      refreshToken,
+      tokens: {
+        accessToken,
+        refreshToken,
+      },
     };
   }
 
@@ -253,7 +259,7 @@ export class AuthService {
 
     return {
       ...user,
-      roles: user.userRoles.map((ur) => ur.role),
+      roles: user.userRoles.map((ur: { role: { id: string; name: string; description: string | null } }) => ur.role),
       userRoles: undefined,
     };
   }

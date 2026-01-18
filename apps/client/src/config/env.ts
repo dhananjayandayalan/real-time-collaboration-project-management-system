@@ -5,10 +5,10 @@
 
 export const env = {
   // API URLs
-  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001',
-  authServiceUrl: import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:3001',
-  projectServiceUrl: import.meta.env.VITE_PROJECT_SERVICE_URL || 'http://localhost:3002',
-  taskServiceUrl: import.meta.env.VITE_TASK_SERVICE_URL || 'http://localhost:3003',
+  apiBaseUrl: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3001/api',
+  authServiceUrl: import.meta.env.VITE_AUTH_SERVICE_URL || 'http://localhost:3001/api',
+  projectServiceUrl: import.meta.env.VITE_PROJECT_SERVICE_URL || 'http://localhost:3002/api',
+  taskServiceUrl: import.meta.env.VITE_TASK_SERVICE_URL || 'http://localhost:3003/api',
   realtimeServiceUrl: import.meta.env.VITE_REALTIME_SERVICE_URL || 'http://localhost:3004',
 
   // Environment

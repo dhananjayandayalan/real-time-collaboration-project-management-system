@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState, useCallback, useRef } from 'react';
+import React, { createContext, /* useContext, */ useEffect, useState, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { env } from '@/config/env';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -17,7 +17,7 @@ import {
 import type { Task, TaskComment, UserPresence, TypingUser } from '@/types';
 
 interface SocketContextType {
-  socket: Socket | null;
+  getSocket: () => Socket | null;
   isConnected: boolean;
   joinProject: (projectId: string) => void;
   leaveProject: (projectId: string) => void;
@@ -29,33 +29,28 @@ interface SocketContextType {
 
 const SocketContext = createContext<SocketContextType | null>(null);
 
-export const useSocket = () => {
-  const context = useContext(SocketContext);
-  if (!context) {
-    throw new Error('useSocket must be used within a SocketProvider');
-  }
-  return context;
-};
+// export const useSocket = () => {
+//   const context = useContext(SocketContext);
+//   if (!context) {
+//     throw new Error('useSocket must be used within a SocketProvider');
+//   }
+//   return context;
+// };
 
 interface SocketProviderProps {
   children: React.ReactNode;
 }
 
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
-  const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const dispatch = useAppDispatch();
   const { isAuthenticated, tokens } = useAppSelector((state) => state.auth);
   const reconnectAttempts = useRef(0);
+  const socketRef = useRef<Socket | null>(null);
   const maxReconnectAttempts = 5;
 
   useEffect(() => {
     if (!isAuthenticated || !tokens?.accessToken) {
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-        setIsConnected(false);
-      }
       return;
     }
 
@@ -70,6 +65,8 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       reconnectionDelay: 1000,
       reconnectionDelayMax: 5000,
     });
+
+    socketRef.current = newSocket;
 
     // Connection events
     newSocket.on('connect', () => {
@@ -125,40 +122,42 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       dispatch(userStoppedTyping({ userId, taskId }));
     });
 
-    setSocket(newSocket);
-
     // Cleanup
     return () => {
       newSocket.disconnect();
+      socketRef.current = null;
+      setIsConnected(false);
     };
   }, [isAuthenticated, tokens?.accessToken, dispatch]);
 
   const joinProject = useCallback((projectId: string) => {
-    socket?.emit('join:project', projectId);
-  }, [socket]);
+    socketRef.current?.emit('join:project', projectId);
+  }, []);
 
   const leaveProject = useCallback((projectId: string) => {
-    socket?.emit('leave:project', projectId);
-  }, [socket]);
+    socketRef.current?.emit('leave:project', projectId);
+  }, []);
 
   const joinTask = useCallback((taskId: string) => {
-    socket?.emit('join:task', taskId);
-  }, [socket]);
+    socketRef.current?.emit('join:task', taskId);
+  }, []);
 
   const leaveTask = useCallback((taskId: string) => {
-    socket?.emit('leave:task', taskId);
-  }, [socket]);
+    socketRef.current?.emit('leave:task', taskId);
+  }, []);
 
   const emitTypingStart = useCallback((taskId: string) => {
-    socket?.emit('typing:start', { taskId });
-  }, [socket]);
+    socketRef.current?.emit('typing:start', { taskId });
+  }, []);
 
   const emitTypingStop = useCallback((taskId: string) => {
-    socket?.emit('typing:stop', { taskId });
-  }, [socket]);
+    socketRef.current?.emit('typing:stop', { taskId });
+  }, []);
+
+  const getSocket = useCallback(() => socketRef.current, []);
 
   const value: SocketContextType = {
-    socket,
+    getSocket,
     isConnected,
     joinProject,
     leaveProject,

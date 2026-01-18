@@ -1,5 +1,5 @@
 import prisma from '../config/prisma';
-import { TaskAttachment } from '@prisma/client';
+import { TaskAttachment } from '../../node_modules/.prisma/task-client';
 import fs from 'fs/promises';
 import path from 'path';
 import taskHistoryService from './taskHistory.service';

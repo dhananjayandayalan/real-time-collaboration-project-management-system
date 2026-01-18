@@ -5,7 +5,8 @@ import { UserRole } from './common.types';
 export interface User {
   id: string;
   email: string;
-  name: string;
+  firstName: string;
+  lastName: string;
   avatar?: string;
   role: UserRole;
   createdAt: Date;
@@ -24,7 +25,8 @@ export interface LoginCredentials {
 export interface RegisterData {
   email: string;
   password: string;
-  name: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface AuthTokens {

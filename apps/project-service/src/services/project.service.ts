@@ -1,5 +1,5 @@
 import prisma from '../config/prisma';
-import { Project, ProjectMember, ProjectStatus, ProjectMemberRole } from '@prisma/client';
+import { Project, ProjectMember, ProjectStatus, ProjectMemberRole } from '../../node_modules/.prisma/project-client';
 
 export interface CreateProjectDto {
   name: string;

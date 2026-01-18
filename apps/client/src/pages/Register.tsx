@@ -11,13 +11,15 @@ export const Register: React.FC = () => {
   const { isLoading, error } = useAppSelector((state) => state.auth);
 
   const [formData, setFormData] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
   });
   const [formErrors, setFormErrors] = useState({
-    name: '',
+    firstName: '',
+    lastName: '',
     email: '',
     password: '',
     confirmPassword: '',
@@ -33,14 +35,19 @@ export const Register: React.FC = () => {
   };
 
   const validate = (): boolean => {
-    const errors = { name: '', email: '', password: '', confirmPassword: '' };
+    const errors = { firstName: '', lastName: '', email: '', password: '', confirmPassword: '' };
     let isValid = true;
 
-    if (!formData.name.trim()) {
-      errors.name = 'Name is required';
+    if (!formData.firstName.trim()) {
+      errors.firstName = 'First name is required';
       isValid = false;
-    } else if (formData.name.trim().length < 2) {
-      errors.name = 'Name must be at least 2 characters';
+    } else if (formData.firstName.trim().length < 2) {
+      errors.firstName = 'First name must be at least 2 characters';
+      isValid = false;
+    }
+
+    if (!formData.lastName.trim()) {
+      errors.lastName = 'Last name is required';
       isValid = false;
     }
 
@@ -79,7 +86,8 @@ export const Register: React.FC = () => {
 
     const result = await dispatch(
       register({
-        name: formData.name.trim(),
+        firstName: formData.firstName.trim(),
+        lastName: formData.lastName.trim(),
         email: formData.email,
         password: formData.password,
       })
@@ -103,14 +111,25 @@ export const Register: React.FC = () => {
 
       <form className="auth-page__form" onSubmit={handleSubmit}>
         <Input
-          label="Full name"
+          label="First name"
           type="text"
-          name="name"
-          value={formData.name}
+          name="firstName"
+          value={formData.firstName}
           onChange={handleChange}
-          error={formErrors.name}
-          placeholder="Enter your full name"
-          autoComplete="name"
+          error={formErrors.firstName}
+          placeholder="Enter your first name"
+          autoComplete="given-name"
+        />
+
+        <Input
+          label="Last name"
+          type="text"
+          name="lastName"
+          value={formData.lastName}
+          onChange={handleChange}
+          error={formErrors.lastName}
+          placeholder="Enter your last name"
+          autoComplete="family-name"
         />
 
         <Input

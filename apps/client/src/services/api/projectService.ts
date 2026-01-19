@@ -19,7 +19,7 @@ export const projectService = {
     return response.data.data;
   },
 
-  async createWorkspace(data: { name: string; description?: string }): Promise<Workspace> {
+  async createWorkspace(data: { name: string; slug: string; description?: string }): Promise<Workspace> {
     const response = await projectApi.post('/workspaces', data);
     return response.data.data;
   },

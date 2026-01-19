@@ -5,6 +5,8 @@ import { RouterProvider } from 'react-router-dom';
 import { store } from '@/store';
 import { SocketProvider } from '@/context/SocketContext';
 import { ToastContainer, ErrorBoundary } from '@/components/common';
+import { CreateProjectModal } from '@/components/projects';
+import { CreateTaskModal, TaskDetailModal } from '@/components/tasks';
 import { router } from '@/router';
 import './index.css';
 
@@ -15,6 +17,9 @@ createRoot(document.getElementById('root')!).render(
         <SocketProvider>
           <RouterProvider router={router} />
           <ToastContainer />
+          <CreateProjectModal />
+          <CreateTaskModal />
+          <TaskDetailModal />
         </SocketProvider>
       </Provider>
     </ErrorBoundary>

@@ -1,4 +1,4 @@
-import React, { createContext, /* useContext, */ useEffect, useState, useCallback, useRef } from 'react';
+import React, { useEffect, useState, useCallback, useRef } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { env } from '@/config/env';
 import { useAppDispatch, useAppSelector } from '@/store';
@@ -15,27 +15,7 @@ import {
   userStoppedTyping,
 } from '@/store/slices/uiSlice';
 import type { Task, TaskComment, UserPresence, TypingUser } from '@/types';
-
-interface SocketContextType {
-  getSocket: () => Socket | null;
-  isConnected: boolean;
-  joinProject: (projectId: string) => void;
-  leaveProject: (projectId: string) => void;
-  joinTask: (taskId: string) => void;
-  leaveTask: (taskId: string) => void;
-  emitTypingStart: (taskId: string) => void;
-  emitTypingStop: (taskId: string) => void;
-}
-
-const SocketContext = createContext<SocketContextType | null>(null);
-
-// export const useSocket = () => {
-//   const context = useContext(SocketContext);
-//   if (!context) {
-//     throw new Error('useSocket must be used within a SocketProvider');
-//   }
-//   return context;
-// };
+import { SocketContext } from './socketContextHelper';
 
 interface SocketProviderProps {
   children: React.ReactNode;
@@ -156,7 +136,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   const getSocket = useCallback(() => socketRef.current, []);
 
-  const value: SocketContextType = {
+  const value = {
     getSocket,
     isConnected,
     joinProject,
@@ -174,4 +154,4 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   );
 };
 
-export default SocketContext;
+export default SocketProvider;

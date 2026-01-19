@@ -36,7 +36,7 @@ export const fetchWorkspaces = createAsyncThunk(
 
 export const createWorkspace = createAsyncThunk(
   'projects/createWorkspace',
-  async (data: { name: string; description?: string }, { rejectWithValue }) => {
+  async (data: { name: string; slug: string; description?: string }, { rejectWithValue }) => {
     try {
       return await projectService.createWorkspace(data);
     } catch (error: unknown) {

@@ -1,0 +1,211 @@
+.project-members {
+  max-width: 800px;
+}
+
+.project-members--loading {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 300px;
+}
+
+/* Header */
+.project-members__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-bottom: var(--spacing-lg);
+}
+
+.project-members__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-900);
+  margin: 0;
+}
+
+.project-members__subtitle {
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-500);
+  margin: var(--spacing-2xs) 0 0;
+}
+
+/* Empty state */
+.project-members__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-3xl);
+  text-align: center;
+  background-color: var(--color-white);
+  border: 2px dashed var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  color: var(--color-neutral-400);
+}
+
+.project-members__empty h3 {
+  margin: 0;
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-semibold);
+  color: var(--color-neutral-900);
+}
+
+.project-members__empty p {
+  margin: 0;
+  color: var(--color-neutral-500);
+}
+
+/* Member list */
+.project-members__list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-xs);
+  background-color: var(--color-white);
+  border: 1px solid var(--color-neutral-200);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Member item */
+.project-members__item {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+  padding: var(--spacing-md);
+  border-bottom: 1px solid var(--color-neutral-100);
+  transition: background-color var(--transition-fast);
+}
+
+.project-members__item:last-child {
+  border-bottom: none;
+}
+
+.project-members__item:hover {
+  background-color: var(--color-neutral-50);
+}
+
+.project-members__item-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  background-color: var(--color-neutral-100);
+  border-radius: var(--radius-full);
+  color: var(--color-neutral-500);
+  flex-shrink: 0;
+}
+
+.project-members__item-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.project-members__item-name {
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-900);
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.project-members__item-you {
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  color: var(--color-neutral-400);
+}
+
+.project-members__item-meta {
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-500);
+  margin-top: var(--spacing-2xs);
+}
+
+/* Role badge */
+.project-members__item-role {
+  flex-shrink: 0;
+}
+
+.project-members__role-badge {
+  display: inline-block;
+  padding: var(--spacing-2xs) var(--spacing-sm);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  border-radius: var(--radius-full);
+}
+
+.project-members__role-badge--owner {
+  background-color: var(--color-secondary);
+  background-color: rgba(124, 58, 237, 0.1);
+  color: #7c3aed;
+}
+
+.project-members__role-badge--admin {
+  background-color: var(--color-primary);
+  background-color: rgba(37, 99, 235, 0.1);
+  color: var(--color-primary);
+}
+
+.project-members__role-badge--member {
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+}
+
+.project-members__role-badge--viewer {
+  background-color: var(--color-neutral-100);
+  color: var(--color-neutral-600);
+}
+
+/* Actions */
+.project-members__item-actions {
+  flex-shrink: 0;
+}
+
+.project-members__remove-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  background: none;
+  border: none;
+  border-radius: var(--radius-md);
+  color: var(--color-neutral-400);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+
+.project-members__remove-btn:hover {
+  background-color: var(--color-error-light);
+  color: var(--color-error);
+}
+
+/* Remove modal */
+.project-members__remove-modal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+}
+
+.project-members__remove-modal p {
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-600);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
+.project-members__remove-modal strong {
+  color: var(--color-neutral-900);
+}
+
+.project-members__remove-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--spacing-sm);
+  padding-top: var(--spacing-md);
+  border-top: 1px solid var(--color-neutral-200);
+}

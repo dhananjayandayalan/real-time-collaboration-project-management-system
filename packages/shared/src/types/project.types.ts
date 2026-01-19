@@ -9,6 +9,7 @@ export enum ProjectStatus {
 export interface Workspace {
   id: string;
   name: string;
+  slug: string;
   description?: string;
   ownerId: string;
   createdAt: Date;

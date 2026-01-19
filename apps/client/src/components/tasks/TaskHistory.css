@@ -1,0 +1,100 @@
+.task-history {
+  display: flex;
+  flex-direction: column;
+}
+
+/* Empty state */
+.task-history__empty {
+  padding: var(--spacing-lg);
+  text-align: center;
+}
+
+.task-history__empty p {
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-400);
+  margin: 0;
+}
+
+/* History list */
+.task-history__list {
+  display: flex;
+  flex-direction: column;
+}
+
+/* History item */
+.task-history__item {
+  display: flex;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm) 0;
+  border-bottom: 1px solid var(--color-neutral-100);
+}
+
+.task-history__item:last-child {
+  border-bottom: none;
+}
+
+.task-history__icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  background-color: var(--color-neutral-100);
+  border-radius: var(--radius-full);
+  color: var(--color-neutral-500);
+  flex-shrink: 0;
+}
+
+.task-history__content {
+  flex: 1;
+  min-width: 0;
+}
+
+.task-history__message {
+  font-size: var(--font-size-sm);
+  color: var(--color-neutral-600);
+  line-height: var(--line-height-normal);
+}
+
+.task-history__user {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-900);
+}
+
+.task-history__field {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-neutral-700);
+}
+
+.task-history__change {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+  margin-top: var(--spacing-2xs);
+  font-size: var(--font-size-xs);
+}
+
+.task-history__change svg {
+  color: var(--color-neutral-400);
+}
+
+.task-history__old-value {
+  padding: var(--spacing-2xs) var(--spacing-xs);
+  background-color: var(--color-error-light);
+  color: var(--color-error-dark);
+  border-radius: var(--radius-sm);
+  text-decoration: line-through;
+}
+
+.task-history__new-value {
+  padding: var(--spacing-2xs) var(--spacing-xs);
+  background-color: var(--color-success-light);
+  color: var(--color-success-dark);
+  border-radius: var(--radius-sm);
+}
+
+.task-history__date {
+  font-size: var(--font-size-xs);
+  color: var(--color-neutral-400);
+  margin-top: var(--spacing-2xs);
+}

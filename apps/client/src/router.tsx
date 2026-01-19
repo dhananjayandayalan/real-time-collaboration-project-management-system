@@ -6,6 +6,11 @@ import {
   ForgotPassword,
   ResetPassword,
   Projects,
+  ProjectDetail,
+  ProjectBoard,
+  ProjectList,
+  ProjectSettings,
+  ProjectMembers,
   NotFound,
 } from '@/pages';
 
@@ -44,19 +49,29 @@ export const router = createBrowserRouter([
       },
       {
         path: 'projects/:id',
-        element: <div>Project Detail (Coming soon)</div>,
-      },
-      {
-        path: 'projects/:id/board',
-        element: <div>Project Board (Coming soon)</div>,
-      },
-      {
-        path: 'projects/:id/list',
-        element: <div>Project List View (Coming soon)</div>,
-      },
-      {
-        path: 'projects/:id/settings',
-        element: <div>Project Settings (Coming soon)</div>,
+        element: <ProjectDetail />,
+        children: [
+          {
+            index: true,
+            element: <Navigate to="board" replace />,
+          },
+          {
+            path: 'board',
+            element: <ProjectBoard />,
+          },
+          {
+            path: 'list',
+            element: <ProjectList />,
+          },
+          {
+            path: 'members',
+            element: <ProjectMembers />,
+          },
+          {
+            path: 'settings',
+            element: <ProjectSettings />,
+          },
+        ],
       },
       {
         path: 'tasks',

@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { fetchProjects } from '@/store/slices/projectsSlice';
 import { LoadingSpinner, Button } from '@/components/common';
@@ -7,6 +8,7 @@ import './Projects.css';
 
 export const Projects: React.FC = () => {
   const dispatch = useAppDispatch();
+  const navigate = useNavigate();
   const { projects, isLoading, error } = useAppSelector((state) => state.projects);
 
   useEffect(() => {
@@ -50,7 +52,7 @@ export const Projects: React.FC = () => {
             <line x1="12" y1="5" x2="12" y2="19" />
             <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
-          New Project
+          <span>New Project</span>
         </Button>
       </div>
 
@@ -70,7 +72,18 @@ export const Projects: React.FC = () => {
       ) : (
         <div className="projects-page__grid">
           {projects.map((project) => (
-            <div key={project.id} className="project-card">
+            <div
+              key={project.id}
+              className="project-card"
+              onClick={() => navigate(`/projects/${project.id}`)}
+              role="button"
+              tabIndex={0}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' || e.key === ' ') {
+                  navigate(`/projects/${project.id}`);
+                }
+              }}
+            >
               <div className="project-card__header">
                 <span className="project-card__key">{project.key}</span>
                 <span className={`project-card__status project-card__status--${project.status.toLowerCase()}`}>

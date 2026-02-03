@@ -1,4 +1,4 @@
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { Request, Response, NextFunction } from 'express';
 import { authenticateToken } from '../../middleware/auth.middleware';
 import {
@@ -24,7 +24,7 @@ describe('Middleware Tests', () => {
       } as Request;
 
       const res = {} as Response;
-      const next = vi.fn() as NextFunction;
+      const next = vi.fn() as unknown as NextFunction;
 
       await authenticateToken(req, res, next);
 
@@ -39,7 +39,7 @@ describe('Middleware Tests', () => {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
       } as unknown as Response;
-      const next = vi.fn() as NextFunction;
+      const next = vi.fn() as unknown as NextFunction;
 
       await authenticateToken(req, res, next);
 
@@ -55,7 +55,7 @@ describe('Middleware Tests', () => {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
       } as unknown as Response;
-      const next = vi.fn() as NextFunction;
+      const next = vi.fn() as unknown as NextFunction;
 
       await authenticateToken(req, res, next);
 
@@ -66,7 +66,7 @@ describe('Middleware Tests', () => {
 
   describe('requirePermission', () => {
     it('should allow access with required permission', async () => {
-      const { role, permissions } = await createRoleWithPermissions('ADMIN', [
+      const { role } = await createRoleWithPermissions('ADMIN', [
         'user:read',
       ]);
       const user = await createTestUser();
@@ -76,7 +76,7 @@ describe('Middleware Tests', () => {
 
       const req = { user: { userId: user.id, email: user.email } } as Request;
       const res = {} as Response;
-      const next = vi.fn() as NextFunction;
+      const next = vi.fn() as unknown as NextFunction;
 
       await middleware(req, res, next);
 
@@ -93,7 +93,7 @@ describe('Middleware Tests', () => {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
       } as unknown as Response;
-      const next = vi.fn() as NextFunction;
+      const next = vi.fn() as unknown as NextFunction;
 
       await middleware(req, res, next);
 
@@ -112,7 +112,7 @@ describe('Middleware Tests', () => {
 
       const req = { user: { userId: user.id, email: user.email } } as Request;
       const res = {} as Response;
-      const next = vi.fn() as NextFunction;
+      const next = vi.fn() as unknown as NextFunction;
 
       await middleware(req, res, next);
 
@@ -129,7 +129,7 @@ describe('Middleware Tests', () => {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
       } as unknown as Response;
-      const next = vi.fn() as NextFunction;
+      const next = vi.fn() as unknown as NextFunction;
 
       await middleware(req, res, next);
 
@@ -146,7 +146,7 @@ describe('Middleware Tests', () => {
 
       const req = { user: { userId: user.id, email: user.email } } as Request;
       const res = {} as Response;
-      const next = vi.fn() as NextFunction;
+      const next = vi.fn() as unknown as NextFunction;
 
       await middleware(req, res, next);
 
@@ -164,7 +164,7 @@ describe('Middleware Tests', () => {
 
       const req = { user: { userId: user.id, email: user.email } } as Request;
       const res = {} as Response;
-      const next = vi.fn() as NextFunction;
+      const next = vi.fn() as unknown as NextFunction;
 
       await middleware(req, res, next);
 
@@ -181,7 +181,7 @@ describe('Middleware Tests', () => {
         status: vi.fn().mockReturnThis(),
         json: vi.fn(),
       } as unknown as Response;
-      const next = vi.fn() as NextFunction;
+      const next = vi.fn() as unknown as NextFunction;
 
       await middleware(req, res, next);
 

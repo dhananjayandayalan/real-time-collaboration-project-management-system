@@ -20,6 +20,9 @@ interface TasksState {
   filters: TaskFilters;
   isLoading: boolean;
   error: string | null;
+  // Optimistic update state
+  pendingUpdates: Record<string, Task>;  // Original tasks for rollback
+  optimisticTasks: string[];              // Temp task IDs
 }
 
 const initialState: TasksState = {
@@ -31,6 +34,8 @@ const initialState: TasksState = {
   filters: {},
   isLoading: false,
   error: null,
+  pendingUpdates: {},
+  optimisticTasks: [],
 };
 
 // Task thunks
@@ -214,12 +219,19 @@ const tasksSlice = createSlice({
     },
     // Real-time updates
     taskCreated: (state, action: PayloadAction<Task>) => {
-      state.tasks.push(action.payload);
+      // Don't add if already exists (might be our own optimistic task that was reconciled)
+      const exists = state.tasks.some(t => t.id === action.payload.id);
+      if (!exists) {
+        state.tasks.push(action.payload);
+      }
     },
     taskUpdated: (state, action: PayloadAction<Task>) => {
       const index = state.tasks.findIndex(t => t.id === action.payload.id);
       if (index !== -1) {
-        state.tasks[index] = action.payload;
+        // Only update if we don't have a pending update (let reconciliation handle it)
+        if (!state.pendingUpdates[action.payload.id]) {
+          state.tasks[index] = action.payload;
+        }
       }
       if (state.currentTask?.id === action.payload.id) {
         state.currentTask = action.payload;
@@ -232,8 +244,75 @@ const tasksSlice = createSlice({
       }
     },
     commentAdded: (state, action: PayloadAction<TaskComment>) => {
-      state.comments.push(action.payload);
+      // Don't add duplicate comments
+      const exists = state.comments.some(c => c.id === action.payload.id);
+      if (!exists) {
+        state.comments.push(action.payload);
+      }
     },
+
+    // Optimistic update actions
+    optimisticTaskCreate: (state, action: PayloadAction<{ tempId: string; task: Partial<Task> }>) => {
+      const { tempId, task } = action.payload;
+      const optimisticTask: Task = {
+        id: tempId,
+        taskId: 'NEW',
+        title: task.title || '',
+        description: task.description,
+        status: task.status || 'TODO' as Task['status'],
+        priority: task.priority || 'MEDIUM' as Task['priority'],
+        type: task.type || 'FEATURE' as Task['type'],
+        projectId: task.projectId || '',
+        reporterId: '',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...task,
+      } as Task;
+      state.tasks.push(optimisticTask);
+      state.optimisticTasks.push(tempId);
+    },
+    reconcileTaskCreate: (state, action: PayloadAction<{ tempId: string; realTask: Task }>) => {
+      const { tempId, realTask } = action.payload;
+      // Remove temp task and add real task
+      state.tasks = state.tasks.filter(t => t.id !== tempId);
+      state.optimisticTasks = state.optimisticTasks.filter(id => id !== tempId);
+      // Add real task if not already present
+      const exists = state.tasks.some(t => t.id === realTask.id);
+      if (!exists) {
+        state.tasks.push(realTask);
+      }
+    },
+    rollbackTaskCreate: (state, action: PayloadAction<string>) => {
+      const tempId = action.payload;
+      state.tasks = state.tasks.filter(t => t.id !== tempId);
+      state.optimisticTasks = state.optimisticTasks.filter(id => id !== tempId);
+    },
+    optimisticTaskUpdate: (state, action: PayloadAction<{ id: string; updates: Partial<Task> }>) => {
+      const { id, updates } = action.payload;
+      const index = state.tasks.findIndex(t => t.id === id);
+      if (index !== -1) {
+        // Store original for rollback
+        state.pendingUpdates[id] = { ...state.tasks[index] };
+        // Apply optimistic update
+        state.tasks[index] = { ...state.tasks[index], ...updates, updatedAt: new Date() };
+      }
+    },
+    confirmTaskUpdate: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+      delete state.pendingUpdates[id];
+    },
+    rollbackTaskUpdate: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+      const original = state.pendingUpdates[id];
+      if (original) {
+        const index = state.tasks.findIndex(t => t.id === id);
+        if (index !== -1) {
+          state.tasks[index] = original;
+        }
+        delete state.pendingUpdates[id];
+      }
+    },
+
     resetTasks: () => initialState,
   },
   extraReducers: (builder) => {
@@ -368,6 +447,12 @@ export const {
   taskUpdated,
   taskDeleted,
   commentAdded,
+  optimisticTaskCreate,
+  reconcileTaskCreate,
+  rollbackTaskCreate,
+  optimisticTaskUpdate,
+  confirmTaskUpdate,
+  rollbackTaskUpdate,
   resetTasks,
 } = tasksSlice.actions;
 

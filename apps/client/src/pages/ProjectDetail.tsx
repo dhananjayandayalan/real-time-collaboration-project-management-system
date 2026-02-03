@@ -1,9 +1,9 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { fetchProject } from '@/store/slices/projectsSlice';
 import { fetchTasks, setFilters } from '@/store/slices/tasksSlice';
-import { LoadingSpinner, Button } from '@/components/common';
+import { LoadingSpinner, Button, OnlineUsersIndicator } from '@/components/common';
 import { useSocket } from '@/hooks';
 import './ProjectDetail.css';
 
@@ -14,6 +14,18 @@ export const ProjectDetail: React.FC = () => {
   const dispatch = useAppDispatch();
   const { joinProject, leaveProject } = useSocket();
   const { currentProject, isLoading, error } = useAppSelector((state) => state.projects);
+  const { projectViewers } = useAppSelector((state) => state.ui);
+
+  // Get viewers for current project, excluding current user
+  const viewers = useMemo(() => {
+    if (!id) return [];
+    const allViewers = projectViewers[id] || [];
+    return allViewers.map(v => ({
+      id: v.userId,
+      name: v.userName,
+      status: 'online' as const,
+    }));
+  }, [id, projectViewers]);
 
   useEffect(() => {
     if (id) {
@@ -109,6 +121,11 @@ export const ProjectDetail: React.FC = () => {
               <p className="project-detail__description">{currentProject.description}</p>
             )}
           </div>
+        </div>
+        <div className="project-detail__header-right">
+          {viewers.length > 0 && (
+            <OnlineUsersIndicator users={viewers} label="viewing" />
+          )}
         </div>
       </div>
 

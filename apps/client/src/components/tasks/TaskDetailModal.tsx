@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { fetchTask, updateTask, deleteTask, fetchComments, fetchAttachments, fetchTaskHistory } from '@/store/slices/tasksSlice';
 import { closeModal, addNotification } from '@/store/slices/uiSlice';
 import { useSocket } from '@/hooks';
-import { Modal, Button, LoadingSpinner } from '@/components/common';
+import { Modal, Button, LoadingSpinner, AvatarStack } from '@/components/common';
 import { TaskComments } from './TaskComments';
 import { TaskAttachments } from './TaskAttachments';
 import { TaskHistory } from './TaskHistory';
@@ -36,7 +36,7 @@ const typeOptions = [
 
 export const TaskDetailModal: React.FC = () => {
   const dispatch = useAppDispatch();
-  const { modalOpen, modalType, modalData } = useAppSelector((state) => state.ui);
+  const { modalOpen, modalType, modalData, taskViewers } = useAppSelector((state) => state.ui);
   const { currentTask, comments, attachments, history, isLoading } = useAppSelector((state) => state.tasks);
   const { joinTask, leaveTask } = useSocket();
 
@@ -47,6 +47,17 @@ export const TaskDetailModal: React.FC = () => {
 
   const isOpen = modalOpen && modalType === 'taskDetail';
   const task = currentTask || (modalData as Task);
+
+  // Get viewers for current task
+  const viewers = useMemo(() => {
+    if (!task?.id) return [];
+    const allViewers = taskViewers[task.id] || [];
+    return allViewers.map(v => ({
+      id: v.userId,
+      name: v.userName,
+      status: 'online' as const,
+    }));
+  }, [task?.id, taskViewers]);
 
   useEffect(() => {
     if (isOpen && task) {
@@ -329,6 +340,23 @@ export const TaskDetailModal: React.FC = () => {
                 })}
               </span>
             </div>
+
+            {viewers.length > 0 && (
+              <div className="task-detail__field task-detail__viewers">
+                <label className="task-detail__field-label">Currently Viewing</label>
+                <div className="task-detail__viewers-list">
+                  <AvatarStack
+                    users={viewers}
+                    max={5}
+                    size="sm"
+                    showStatus
+                  />
+                  <span className="task-detail__viewers-count">
+                    {viewers.length === 1 ? '1 person' : `${viewers.length} people`}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         </div>
 

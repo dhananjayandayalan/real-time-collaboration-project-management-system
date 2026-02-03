@@ -13,3 +13,12 @@ export type { SpinnerSize } from './LoadingSpinner';
 export { ErrorBoundary } from './ErrorBoundary';
 
 export { ToastContainer } from './Toast';
+
+export { Avatar } from './Avatar';
+export type { AvatarSize, AvatarProps } from './Avatar';
+
+export { AvatarStack } from './AvatarStack';
+export type { AvatarStackUser, AvatarStackProps } from './AvatarStack';
+
+export { OnlineUsersIndicator } from './OnlineUsersIndicator';
+export type { OnlineUsersIndicatorProps } from './OnlineUsersIndicator';

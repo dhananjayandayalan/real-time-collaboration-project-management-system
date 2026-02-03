@@ -16,6 +16,14 @@ export interface ClientToServerEvents {
   'typing:stop': (data: { taskId: string }) => void;
 }
 
+// Room member data
+export interface RoomMemberData {
+  userId: string;
+  userName: string;
+  email?: string;
+  joinedAt: string;
+}
+
 // Server to Client events
 export interface ServerToClientEvents {
   'task:created': (data: TaskEventData) => void;
@@ -25,6 +33,12 @@ export interface ServerToClientEvents {
   'user:online': (data: UserPresenceData) => void;
   'user:offline': (data: UserPresenceData) => void;
   'typing:user': (data: { taskId: string; userName: string; userId: string }) => void;
+  'typing:stopped': (data: { taskId: string; userId: string }) => void;
+  'room:joined': (data: { room: string; id: string }) => void;
+  'room:left': (data: { room: string; id: string }) => void;
+  'room:members': (data: { roomType: 'project' | 'task'; roomId: string; members: RoomMemberData[] }) => void;
+  'room:userJoined': (data: { roomType: 'project' | 'task'; roomId: string; user: RoomMemberData }) => void;
+  'room:userLeft': (data: { roomType: 'project' | 'task'; roomId: string; userId: string }) => void;
   error: (message: string) => void;
 }
 

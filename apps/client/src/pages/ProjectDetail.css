@@ -36,6 +36,12 @@
   gap: var(--spacing-md);
 }
 
+.project-detail__header-right {
+  display: flex;
+  align-items: center;
+  gap: var(--spacing-md);
+}
+
 .project-detail__back-btn {
   display: flex;
   align-items: center;

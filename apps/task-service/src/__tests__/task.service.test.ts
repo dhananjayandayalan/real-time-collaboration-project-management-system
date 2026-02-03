@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import taskService from '../services/task.service';
 import { createTestTaskData, generateUniqueId } from './helpers';
-import { TaskStatus, TaskPriority } from '../../../node_modules/.prisma/task-client';
+import { TaskStatus } from '../../node_modules/.prisma/task-client';
 import prisma from '../config/prisma';
 
 describe('Task Service', () => {

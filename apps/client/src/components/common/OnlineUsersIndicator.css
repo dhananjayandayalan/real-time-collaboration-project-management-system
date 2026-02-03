@@ -1,0 +1,14 @@
+.online-users-indicator {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 8px;
+  background-color: var(--color-bg-secondary);
+  border-radius: 20px;
+  font-size: 12px;
+}
+
+.online-users-indicator__text {
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+}

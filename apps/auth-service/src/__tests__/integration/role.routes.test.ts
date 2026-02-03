@@ -21,7 +21,7 @@ describe('Role Routes Integration Tests', () => {
     app.use('/api/roles', roleRoutes);
 
     // Create admin user with role:read permission
-    const { role: adminRole, permissions } = await createRoleWithPermissions(
+    const { role: adminRole } = await createRoleWithPermissions(
       'ADMIN',
       ['role:read', 'role:create', 'role:assign']
     );

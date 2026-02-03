@@ -2,6 +2,14 @@ import { createSlice } from '@reduxjs/toolkit';
 import type { PayloadAction } from '@reduxjs/toolkit';
 import type { Notification, UserPresence, TypingUser } from '@/types';
 
+// Room viewer type
+export interface RoomViewer {
+  userId: string;
+  userName: string;
+  email?: string;
+  joinedAt: string;
+}
+
 interface UiState {
   notifications: Notification[];
   sidebarOpen: boolean;
@@ -11,6 +19,9 @@ interface UiState {
   onlineUsers: UserPresence[];
   typingUsers: TypingUser[];
   globalLoading: boolean;
+  // Room-based presence
+  projectViewers: Record<string, RoomViewer[]>;
+  taskViewers: Record<string, RoomViewer[]>;
 }
 
 const initialState: UiState = {
@@ -22,6 +33,8 @@ const initialState: UiState = {
   onlineUsers: [],
   typingUsers: [],
   globalLoading: false,
+  projectViewers: {},
+  taskViewers: {},
 };
 
 const uiSlice = createSlice({
@@ -103,6 +116,54 @@ const uiSlice = createSlice({
       state.globalLoading = action.payload;
     },
 
+    // Room presence - Projects
+    setProjectViewers: (state, action: PayloadAction<{ projectId: string; viewers: RoomViewer[] }>) => {
+      state.projectViewers[action.payload.projectId] = action.payload.viewers;
+    },
+    userJoinedProject: (state, action: PayloadAction<{ projectId: string; user: RoomViewer }>) => {
+      const { projectId, user } = action.payload;
+      if (!state.projectViewers[projectId]) {
+        state.projectViewers[projectId] = [];
+      }
+      const exists = state.projectViewers[projectId].some(v => v.userId === user.userId);
+      if (!exists) {
+        state.projectViewers[projectId].push(user);
+      }
+    },
+    userLeftProject: (state, action: PayloadAction<{ projectId: string; userId: string }>) => {
+      const { projectId, userId } = action.payload;
+      if (state.projectViewers[projectId]) {
+        state.projectViewers[projectId] = state.projectViewers[projectId].filter(v => v.userId !== userId);
+      }
+    },
+    clearProjectViewers: (state, action: PayloadAction<string>) => {
+      delete state.projectViewers[action.payload];
+    },
+
+    // Room presence - Tasks
+    setTaskViewers: (state, action: PayloadAction<{ taskId: string; viewers: RoomViewer[] }>) => {
+      state.taskViewers[action.payload.taskId] = action.payload.viewers;
+    },
+    userJoinedTask: (state, action: PayloadAction<{ taskId: string; user: RoomViewer }>) => {
+      const { taskId, user } = action.payload;
+      if (!state.taskViewers[taskId]) {
+        state.taskViewers[taskId] = [];
+      }
+      const exists = state.taskViewers[taskId].some(v => v.userId === user.userId);
+      if (!exists) {
+        state.taskViewers[taskId].push(user);
+      }
+    },
+    userLeftTask: (state, action: PayloadAction<{ taskId: string; userId: string }>) => {
+      const { taskId, userId } = action.payload;
+      if (state.taskViewers[taskId]) {
+        state.taskViewers[taskId] = state.taskViewers[taskId].filter(v => v.userId !== userId);
+      }
+    },
+    clearTaskViewers: (state, action: PayloadAction<string>) => {
+      delete state.taskViewers[action.payload];
+    },
+
     // Reset
     resetUi: () => initialState,
   },
@@ -123,6 +184,14 @@ export const {
   userStoppedTyping,
   clearTypingUsers,
   setGlobalLoading,
+  setProjectViewers,
+  userJoinedProject,
+  userLeftProject,
+  clearProjectViewers,
+  setTaskViewers,
+  userJoinedTask,
+  userLeftTask,
+  clearTaskViewers,
   resetUi,
 } = uiSlice.actions;
 

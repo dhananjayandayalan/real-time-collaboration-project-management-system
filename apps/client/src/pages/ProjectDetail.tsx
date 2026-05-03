@@ -3,7 +3,7 @@ import { useParams, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { fetchProject } from '@/store/slices/projectsSlice';
 import { fetchTasks, setFilters } from '@/store/slices/tasksSlice';
-import { LoadingSpinner, Button } from '@/components/common';
+import { LoadingSpinner, Button, OnlineUsers } from '@/components/common';
 import { useSocket } from '@/hooks';
 import './ProjectDetail.css';
 
@@ -109,6 +109,9 @@ export const ProjectDetail: React.FC = () => {
               <p className="project-detail__description">{currentProject.description}</p>
             )}
           </div>
+        </div>
+        <div className="project-detail__header-right">
+          <OnlineUsers />
         </div>
       </div>
 

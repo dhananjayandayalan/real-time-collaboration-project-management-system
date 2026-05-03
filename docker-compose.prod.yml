@@ -1,0 +1,170 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:15-alpine
+    container_name: pm-postgres
+    restart: always
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/init-databases.sql:/docker-entrypoint-initdb.d/init-databases.sql
+    networks:
+      - pm-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: pm-redis
+    restart: always
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    volumes:
+      - redis_data:/data
+    networks:
+      - pm-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "-a", "${REDIS_PASSWORD}", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  auth-service:
+    build:
+      context: .
+      dockerfile: apps/auth-service/Dockerfile
+    container_name: pm-auth-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
+      JWT_EXPIRES_IN: ${JWT_EXPIRES_IN:-15m}
+      JWT_REFRESH_EXPIRES_IN: ${JWT_REFRESH_EXPIRES_IN:-7d}
+      AUTH_SERVICE_PORT: 3001
+      CORS_ORIGIN: ${ALLOWED_ORIGINS}
+      EMAIL_HOST: ${EMAIL_HOST}
+      EMAIL_PORT: ${EMAIL_PORT}
+      EMAIL_USER: ${EMAIL_USER}
+      EMAIL_PASS: ${EMAIL_PASS}
+      EMAIL_FROM: ${EMAIL_FROM}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks:
+      - pm-network
+
+  project-service:
+    build:
+      context: .
+      dockerfile: apps/project-service/Dockerfile
+    container_name: pm-project-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      PROJECT_SERVICE_PORT: 3002
+      AUTH_SERVICE_URL: http://auth-service:3001
+      CORS_ORIGIN: ${ALLOWED_ORIGINS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - pm-network
+
+  task-service:
+    build:
+      context: .
+      dockerfile: apps/task-service/Dockerfile
+    container_name: pm-task-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      DATABASE_URL: ${DATABASE_URL}
+      REDIS_URL: ${REDIS_URL}
+      TASK_SERVICE_PORT: 3003
+      AUTH_SERVICE_URL: http://auth-service:3001
+      CORS_ORIGIN: ${ALLOWED_ORIGINS}
+    volumes:
+      - task_uploads:/app/apps/task-service/uploads
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      auth-service:
+        condition: service_started
+    networks:
+      - pm-network
+
+  realtime-service:
+    build:
+      context: .
+      dockerfile: apps/realtime-service/Dockerfile
+    container_name: pm-realtime-service
+    restart: always
+    environment:
+      NODE_ENV: production
+      REDIS_URL: ${REDIS_URL}
+      REALTIME_SERVICE_PORT: 3004
+      JWT_SECRET: ${JWT_SECRET}
+      CORS_ORIGIN: ${ALLOWED_ORIGINS}
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks:
+      - pm-network
+
+  client:
+    build:
+      context: .
+      dockerfile: apps/client/Dockerfile
+      args:
+        VITE_REALTIME_URL: ${VITE_REALTIME_URL}
+    container_name: pm-client
+    restart: always
+    networks:
+      - pm-network
+
+  nginx:
+    image: nginx:alpine
+    container_name: pm-nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./docker/nginx-prod.conf:/etc/nginx/nginx.conf:ro
+      - ./docker/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - auth-service
+      - project-service
+      - task-service
+      - realtime-service
+      - client
+    networks:
+      - pm-network
+
+networks:
+  pm-network:
+    driver: bridge
+
+volumes:
+  postgres_data:
+  redis_data:
+  task_uploads:

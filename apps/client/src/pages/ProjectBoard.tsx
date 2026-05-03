@@ -4,6 +4,7 @@ import { updateTask, createTask } from '@/store/slices/tasksSlice';
 import { openModal, addNotification } from '@/store/slices/uiSlice';
 import { TaskCard, FilterPanel } from '@/components/tasks';
 import { Button, LoadingSpinner } from '@/components/common';
+import { useSocket } from '@/hooks';
 import { TaskStatus, TaskPriority, TaskType } from '@/types';
 import type { Task } from '@/types';
 import './ProjectBoard.css';
@@ -25,6 +26,7 @@ export const ProjectBoard: React.FC = () => {
   const dispatch = useAppDispatch();
   const { tasks, isLoading } = useAppSelector((state) => state.tasks);
   const { currentProject } = useAppSelector((state) => state.projects);
+  const { trackPendingUpdate } = useSocket();
   const [draggedTask, setDraggedTask] = useState<Task | null>(null);
   const [dragOverColumn, setDragOverColumn] = useState<TaskStatus | null>(null);
 
@@ -60,6 +62,9 @@ export const ProjectBoard: React.FC = () => {
     if (!draggedTask || draggedTask.status === newStatus) {
       return;
     }
+
+    // Track this update to avoid showing notification for own action
+    trackPendingUpdate(draggedTask.id);
 
     try {
       await dispatch(updateTask({

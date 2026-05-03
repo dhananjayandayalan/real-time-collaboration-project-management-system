@@ -17,14 +17,24 @@ const app = express();
 const httpServer = createServer(app);
 const PORT = process.env.PORT || 3004;
 
-// Middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));
+// CORS configuration - allow multiple origins for development
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174').split(',');
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 
 // Socket.io setup with TypeScript types
 const io = new Server<ClientToServerEvents, ServerToClientEvents>(httpServer, {
   cors: {
-    origin: process.env.CORS_ORIGIN || 'http://localhost:5173',
+    origin: allowedOrigins,
     methods: ['GET', 'POST'],
     credentials: true,
   },

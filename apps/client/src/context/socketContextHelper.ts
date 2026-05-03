@@ -10,6 +10,7 @@ export interface SocketContextType {
   leaveTask: (taskId: string) => void;
   emitTypingStart: (taskId: string) => void;
   emitTypingStop: (taskId: string) => void;
+  trackPendingUpdate: (taskId: string) => void;
 }
 
 export const SocketContext = createContext<SocketContextType | null>(null);

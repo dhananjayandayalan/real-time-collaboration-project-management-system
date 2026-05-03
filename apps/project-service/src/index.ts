@@ -11,8 +11,18 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PROJECT_SERVICE_PORT || 3002;
 
-// Middleware
-app.use(cors({ origin: process.env.CORS_ORIGIN || 'http://localhost:5173' }));
+// CORS configuration - allow multiple origins for development
+const allowedOrigins = (process.env.CORS_ORIGIN || 'http://localhost:5173,http://localhost:5174').split(',');
+app.use(cors({
+  origin: (origin, callback) => {
+    if (!origin) return callback(null, true);
+    if (allowedOrigins.includes(origin)) {
+      return callback(null, true);
+    }
+    return callback(new Error('Not allowed by CORS'));
+  },
+  credentials: true,
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

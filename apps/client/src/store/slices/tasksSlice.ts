@@ -11,8 +11,13 @@ import type {
 } from '@/types';
 import { taskService } from '@/services/api/taskService';
 
+interface OptimisticTask extends Task {
+  _optimistic?: boolean;
+  _tempId?: string;
+}
+
 interface TasksState {
-  tasks: Task[];
+  tasks: OptimisticTask[];
   currentTask: Task | null;
   comments: TaskComment[];
   attachments: TaskAttachment[];
@@ -20,6 +25,7 @@ interface TasksState {
   filters: TaskFilters;
   isLoading: boolean;
   error: string | null;
+  pendingUpdates: Record<string, Task>; // Store original task state for rollback
 }
 
 const initialState: TasksState = {
@@ -31,6 +37,7 @@ const initialState: TasksState = {
   filters: {},
   isLoading: false,
   error: null,
+  pendingUpdates: {},
 };
 
 // Task thunks
@@ -70,12 +77,70 @@ export const createTask = createAsyncThunk(
   }
 );
 
+// Optimistic task creation
+export const createTaskOptimistic = createAsyncThunk(
+  'tasks/createTaskOptimistic',
+  async (
+    { data, optimisticTask }: { data: CreateTaskData; optimisticTask: OptimisticTask },
+    { dispatch, rejectWithValue }
+  ) => {
+    // Add optimistic task to state
+    dispatch(addOptimisticTask(optimisticTask));
+
+    try {
+      const task = await taskService.createTask(data);
+      // Replace optimistic task with real task
+      dispatch(replaceOptimisticTask({ tempId: optimisticTask._tempId!, realTask: task }));
+      return task;
+    } catch (error: unknown) {
+      // Remove optimistic task on failure
+      dispatch(removeOptimisticTask(optimisticTask._tempId!));
+      const message = error instanceof Error ? error.message : 'Failed to create task';
+      return rejectWithValue(message);
+    }
+  }
+);
+
 export const updateTask = createAsyncThunk(
   'tasks/updateTask',
   async ({ id, data }: { id: string; data: UpdateTaskData }, { rejectWithValue }) => {
     try {
       return await taskService.updateTask(id, data);
     } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'Failed to update task';
+      return rejectWithValue(message);
+    }
+  }
+);
+
+// Optimistic task update
+export const updateTaskOptimistic = createAsyncThunk(
+  'tasks/updateTaskOptimistic',
+  async (
+    { id, data }: { id: string; data: UpdateTaskData },
+    { dispatch, getState, rejectWithValue }
+  ) => {
+    const state = getState() as { tasks: TasksState };
+    const currentTask = state.tasks.tasks.find(t => t.id === id);
+
+    if (!currentTask) {
+      return rejectWithValue('Task not found');
+    }
+
+    // Store original state for rollback
+    dispatch(storePendingUpdate({ id, task: currentTask }));
+
+    // Apply optimistic update
+    dispatch(applyOptimisticUpdate({ id, data }));
+
+    try {
+      const task = await taskService.updateTask(id, data);
+      // Clear pending update on success
+      dispatch(clearPendingUpdate(id));
+      return task;
+    } catch (error: unknown) {
+      // Rollback on failure
+      dispatch(rollbackUpdate(id));
       const message = error instanceof Error ? error.message : 'Failed to update task';
       return rejectWithValue(message);
     }
@@ -234,6 +299,48 @@ const tasksSlice = createSlice({
     commentAdded: (state, action: PayloadAction<TaskComment>) => {
       state.comments.push(action.payload);
     },
+    // Optimistic task management
+    addOptimisticTask: (state, action: PayloadAction<OptimisticTask>) => {
+      state.tasks.unshift(action.payload);
+    },
+    replaceOptimisticTask: (state, action: PayloadAction<{ tempId: string; realTask: Task }>) => {
+      const index = state.tasks.findIndex(t => t._tempId === action.payload.tempId);
+      if (index !== -1) {
+        state.tasks[index] = action.payload.realTask;
+      }
+    },
+    removeOptimisticTask: (state, action: PayloadAction<string>) => {
+      state.tasks = state.tasks.filter(t => t._tempId !== action.payload);
+    },
+    // Optimistic update management
+    storePendingUpdate: (state, action: PayloadAction<{ id: string; task: Task }>) => {
+      state.pendingUpdates[action.payload.id] = action.payload.task;
+    },
+    applyOptimisticUpdate: (state, action: PayloadAction<{ id: string; data: UpdateTaskData }>) => {
+      const index = state.tasks.findIndex(t => t.id === action.payload.id);
+      if (index !== -1) {
+        state.tasks[index] = { ...state.tasks[index], ...action.payload.data };
+      }
+      if (state.currentTask?.id === action.payload.id) {
+        state.currentTask = { ...state.currentTask, ...action.payload.data };
+      }
+    },
+    clearPendingUpdate: (state, action: PayloadAction<string>) => {
+      delete state.pendingUpdates[action.payload];
+    },
+    rollbackUpdate: (state, action: PayloadAction<string>) => {
+      const originalTask = state.pendingUpdates[action.payload];
+      if (originalTask) {
+        const index = state.tasks.findIndex(t => t.id === action.payload);
+        if (index !== -1) {
+          state.tasks[index] = originalTask;
+        }
+        if (state.currentTask?.id === action.payload) {
+          state.currentTask = originalTask;
+        }
+        delete state.pendingUpdates[action.payload];
+      }
+    },
     resetTasks: () => initialState,
   },
   extraReducers: (builder) => {
@@ -368,6 +475,13 @@ export const {
   taskUpdated,
   taskDeleted,
   commentAdded,
+  addOptimisticTask,
+  replaceOptimisticTask,
+  removeOptimisticTask,
+  storePendingUpdate,
+  applyOptimisticUpdate,
+  clearPendingUpdate,
+  rollbackUpdate,
   resetTasks,
 } = tasksSlice.actions;
 

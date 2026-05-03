@@ -13,6 +13,7 @@ import {
   userOffline,
   userTyping,
   userStoppedTyping,
+  addNotification,
 } from '@/store/slices/uiSlice';
 import type { Task, TaskComment, UserPresence, TypingUser } from '@/types';
 import { SocketContext } from './socketContextHelper';
@@ -24,10 +25,19 @@ interface SocketProviderProps {
 export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const dispatch = useAppDispatch();
-  const { isAuthenticated, tokens } = useAppSelector((state) => state.auth);
+  const { isAuthenticated, tokens, user } = useAppSelector((state) => state.auth);
+  const tasks = useAppSelector((state) => state.tasks.tasks);
+  const currentUserId = user?.id;
   const reconnectAttempts = useRef(0);
   const socketRef = useRef<Socket | null>(null);
+  const pendingUpdatesRef = useRef<Set<string>>(new Set());
+  const tasksRef = useRef<Task[]>([]);
   const maxReconnectAttempts = 5;
+
+  // Keep tasks ref updated
+  useEffect(() => {
+    tasksRef.current = tasks;
+  }, [tasks]);
 
   useEffect(() => {
     if (!isAuthenticated || !tokens?.accessToken) {
@@ -69,19 +79,98 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     // Task events
     newSocket.on('task:created', (task: Task) => {
       dispatch(taskCreated(task));
+      // Only show notification if another user created the task
+      if (task.reporterId !== currentUserId) {
+        // Check if the task is assigned to the current user
+        if (task.assigneeId === currentUserId) {
+          dispatch(addNotification({
+            type: 'info',
+            message: `You've been assigned to new task: ${task.title}`,
+          }));
+        } else {
+          dispatch(addNotification({
+            type: 'info',
+            message: `New task created: ${task.title}`,
+          }));
+        }
+      }
     });
 
     newSocket.on('task:updated', (task: Task) => {
+      // Find the previous task state to determine what changed
+      const previousTask = tasksRef.current.find(t => t.id === task.id);
+
       dispatch(taskUpdated(task));
+
+      // Only show notification if this update wasn't initiated by the current user
+      if (!pendingUpdatesRef.current.has(task.id)) {
+        // Check for specific changes
+        if (previousTask) {
+          // Check if current user was assigned to this task
+          if (task.assigneeId === currentUserId && previousTask.assigneeId !== currentUserId) {
+            dispatch(addNotification({
+              type: 'info',
+              message: `You've been assigned to: ${task.title}`,
+            }));
+            return;
+          }
+
+          // Check for status changes
+          if (task.status !== previousTask.status) {
+            const statusLabels: Record<string, string> = {
+              'TODO': 'To Do',
+              'IN_PROGRESS': 'In Progress',
+              'IN_REVIEW': 'In Review',
+              'DONE': 'Done'
+            };
+            dispatch(addNotification({
+              type: 'info',
+              message: `Task "${task.title}" moved to ${statusLabels[task.status] || task.status}`,
+            }));
+            return;
+          }
+
+          // Check for priority changes
+          if (task.priority !== previousTask.priority) {
+            dispatch(addNotification({
+              type: 'info',
+              message: `Task "${task.title}" priority changed to ${task.priority}`,
+            }));
+            return;
+          }
+        }
+
+        // Default notification for other updates
+        dispatch(addNotification({
+          type: 'info',
+          message: `Task updated: ${task.title}`,
+        }));
+      } else {
+        // Clear the pending update flag
+        pendingUpdatesRef.current.delete(task.id);
+      }
     });
 
-    newSocket.on('task:deleted', (taskId: string) => {
-      dispatch(taskDeleted(taskId));
+    newSocket.on('task:deleted', (data: { taskId: string; projectId: string }) => {
+      dispatch(taskDeleted(data.taskId));
+      dispatch(addNotification({
+        type: 'info',
+        message: `Task ${data.taskId} was deleted`,
+      }));
     });
 
     // Comment events
-    newSocket.on('comment:added', (comment: TaskComment) => {
+    newSocket.on('comment:added', (comment: TaskComment & { userName?: string }) => {
       dispatch(commentAdded(comment));
+      // Only show notification if another user added the comment
+      if (comment.userId !== currentUserId) {
+        dispatch(addNotification({
+          type: 'info',
+          message: comment.userName
+            ? `${comment.userName} added a comment`
+            : 'New comment added',
+        }));
+      }
     });
 
     // Presence events
@@ -136,6 +225,15 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
   const getSocket = useCallback(() => socketRef.current, []);
 
+  // Track pending task updates to avoid showing notifications for own actions
+  const trackPendingUpdate = useCallback((taskId: string) => {
+    pendingUpdatesRef.current.add(taskId);
+    // Auto-clear after 5 seconds in case the socket event never comes back
+    setTimeout(() => {
+      pendingUpdatesRef.current.delete(taskId);
+    }, 5000);
+  }, []);
+
   const value = {
     getSocket,
     isConnected,
@@ -145,6 +243,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
     leaveTask,
     emitTypingStart,
     emitTypingStop,
+    trackPendingUpdate,
   };
 
   return (

@@ -388,11 +388,11 @@ This project is licensed under the MIT License.
 
 ## Author
 
-**Your Name**
-- Portfolio: [your-portfolio.com](https://your-portfolio.com)
-- LinkedIn: [your-linkedin](https://linkedin.com/in/your-profile)
-- GitHub: [@your-username](https://github.com/your-username)
+**Dhananjayan D**
+- LinkedIn: [linkedin.com/in/dhananjayan-d](https://linkedin.com/in/dhananjayan-d)
+- GitHub: [@dhananjayan-d](https://github.com/dhananjayan-d)
+- Email: dhananjayan.dayalan@gmail.com
 
 ---
 
-Built with ❤️ as a portfolio project to demonstrate full-stack development expertise.
+Built as a portfolio project to demonstrate full-stack development expertise.

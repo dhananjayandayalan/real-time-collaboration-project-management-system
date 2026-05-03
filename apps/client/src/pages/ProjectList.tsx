@@ -4,6 +4,7 @@ import { openModal, addNotification } from '@/store/slices/uiSlice';
 import { updateTask } from '@/store/slices/tasksSlice';
 import { FilterPanel } from '@/components/tasks';
 import { Button, LoadingSpinner } from '@/components/common';
+import { useSocket } from '@/hooks';
 import { TaskStatus, TaskPriority, TaskType } from '@/types';
 import type { Task } from '@/types';
 import './ProjectList.css';
@@ -36,6 +37,7 @@ export const ProjectList: React.FC = () => {
   const dispatch = useAppDispatch();
   const { tasks, isLoading } = useAppSelector((state) => state.tasks);
   const { currentProject } = useAppSelector((state) => state.projects);
+  const { trackPendingUpdate } = useSocket();
   const [sortField, setSortField] = useState<SortField>('createdAt');
   const [sortDirection, setSortDirection] = useState<SortDirection>('desc');
   const [selectedTasks, setSelectedTasks] = useState<Set<string>>(new Set());
@@ -120,6 +122,9 @@ export const ProjectList: React.FC = () => {
   };
 
   const handleStatusChange = async (task: Task, newStatus: TaskStatus) => {
+    // Track this update to avoid showing notification for own action
+    trackPendingUpdate(task.id);
+
     try {
       await dispatch(updateTask({
         id: task.id,

@@ -38,7 +38,7 @@ export const TaskDetailModal: React.FC = () => {
   const dispatch = useAppDispatch();
   const { modalOpen, modalType, modalData } = useAppSelector((state) => state.ui);
   const { currentTask, comments, attachments, history, isLoading } = useAppSelector((state) => state.tasks);
-  const { joinTask, leaveTask } = useSocket();
+  const { joinTask, leaveTask, trackPendingUpdate } = useSocket();
 
   const [activeTab, setActiveTab] = useState<TabType>('comments');
   const [isEditing, setIsEditing] = useState(false);
@@ -87,6 +87,9 @@ export const TaskDetailModal: React.FC = () => {
   const handleSave = async () => {
     if (!task) return;
 
+    // Track this update to avoid showing notification for own action
+    trackPendingUpdate(task.id);
+
     try {
       await dispatch(updateTask({
         id: task.id,
@@ -108,6 +111,9 @@ export const TaskDetailModal: React.FC = () => {
 
   const handleFieldChange = async (field: keyof Task, value: unknown) => {
     if (!task) return;
+
+    // Track this update to avoid showing notification for own action
+    trackPendingUpdate(task.id);
 
     try {
       await dispatch(updateTask({

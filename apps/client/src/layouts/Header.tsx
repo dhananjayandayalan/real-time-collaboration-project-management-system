@@ -98,15 +98,15 @@ export const Header: React.FC = () => {
             {user?.avatar ? (
               <img
                 src={user.avatar}
-                alt={user.name}
+                alt={`${user.firstName} ${user.lastName}`}
                 className="header__avatar"
               />
             ) : (
               <div className="header__avatar header__avatar--placeholder">
-                {user?.name ? getInitials(user.name) : 'U'}
+                {user ? getInitials(`${user.firstName} ${user.lastName}`) : 'U'}
               </div>
             )}
-            <span className="header__user-name">{user?.name || 'User'}</span>
+            <span className="header__user-name">{user ? `${user.firstName} ${user.lastName}` : 'User'}</span>
             <svg className="header__dropdown-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="6 9 12 15 18 9" />
             </svg>
@@ -115,7 +115,7 @@ export const Header: React.FC = () => {
           {dropdownOpen && (
             <div className="header__dropdown">
               <div className="header__dropdown-header">
-                <div className="header__dropdown-name">{user?.name}</div>
+                <div className="header__dropdown-name">{user ? `${user.firstName} ${user.lastName}` : ''}</div>
                 <div className="header__dropdown-email">{user?.email}</div>
               </div>
               <div className="header__dropdown-divider" />

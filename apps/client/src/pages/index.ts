@@ -8,4 +8,8 @@ export { ProjectBoard } from './ProjectBoard';
 export { ProjectList } from './ProjectList';
 export { ProjectSettings } from './ProjectSettings';
 export { ProjectMembers } from './ProjectMembers';
+export { MyTasks } from './MyTasks';
+export { Profile } from './Profile';
+export { Team } from './Team';
+export { UserSettings } from './UserSettings';
 export { NotFound } from './NotFound';

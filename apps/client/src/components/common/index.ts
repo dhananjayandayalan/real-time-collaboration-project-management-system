@@ -13,3 +13,5 @@ export type { SpinnerSize } from './LoadingSpinner';
 export { ErrorBoundary } from './ErrorBoundary';
 
 export { ToastContainer } from './Toast';
+
+export { OnlineUsers } from './OnlineUsers';

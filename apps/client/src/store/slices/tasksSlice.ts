@@ -279,12 +279,19 @@ const tasksSlice = createSlice({
     },
     // Real-time updates
     taskCreated: (state, action: PayloadAction<Task>) => {
-      state.tasks.push(action.payload);
+      // Don't add if already exists (might be our own optimistic task that was reconciled)
+      const exists = state.tasks.some(t => t.id === action.payload.id);
+      if (!exists) {
+        state.tasks.push(action.payload);
+      }
     },
     taskUpdated: (state, action: PayloadAction<Task>) => {
       const index = state.tasks.findIndex(t => t.id === action.payload.id);
       if (index !== -1) {
-        state.tasks[index] = action.payload;
+        // Only update if we don't have a pending update (let reconciliation handle it)
+        if (!state.pendingUpdates[action.payload.id]) {
+          state.tasks[index] = action.payload;
+        }
       }
       if (state.currentTask?.id === action.payload.id) {
         state.currentTask = action.payload;
@@ -297,7 +304,11 @@ const tasksSlice = createSlice({
       }
     },
     commentAdded: (state, action: PayloadAction<TaskComment>) => {
-      state.comments.push(action.payload);
+      // Don't add duplicate comments
+      const exists = state.comments.some(c => c.id === action.payload.id);
+      if (!exists) {
+        state.comments.push(action.payload);
+      }
     },
     // Optimistic task management
     addOptimisticTask: (state, action: PayloadAction<OptimisticTask>) => {

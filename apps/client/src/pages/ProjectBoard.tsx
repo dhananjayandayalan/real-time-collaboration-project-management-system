@@ -1,7 +1,8 @@
 import React, { useState, useCallback } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { updateTask, createTask } from '@/store/slices/tasksSlice';
+import { createTask } from '@/store/slices/tasksSlice';
 import { openModal, addNotification } from '@/store/slices/uiSlice';
+import { useOptimisticTask } from '@/hooks';
 import { TaskCard, FilterPanel } from '@/components/tasks';
 import { Button, LoadingSpinner } from '@/components/common';
 import { useSocket } from '@/hooks';
@@ -67,20 +68,14 @@ export const ProjectBoard: React.FC = () => {
     trackPendingUpdate(draggedTask.id);
 
     try {
-      await dispatch(updateTask({
-        id: draggedTask.id,
-        data: { status: newStatus },
-      })).unwrap();
-
+      await updateTaskOptimistically(draggedTask.id, { status: newStatus });
       dispatch(addNotification({
         type: 'success',
         message: `Task moved to ${columns.find(c => c.id === newStatus)?.title}`,
       }));
     } catch {
-      dispatch(addNotification({
-        type: 'error',
-        message: 'Failed to update task status',
-      }));
+      // Error notification is handled by useOptimisticTask hook
+      // Rollback is automatic
     }
   };
 

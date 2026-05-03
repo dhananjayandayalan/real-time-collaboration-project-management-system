@@ -1,5 +1,5 @@
 import prisma from '../../config/prisma';
-import { Workspace, Project } from '../../../../node_modules/.prisma/project-client';
+import { Workspace, Project } from '../../../node_modules/.prisma/project-client';
 
 // Generate a unique identifier for test data
 export const generateUniqueId = (): string => {

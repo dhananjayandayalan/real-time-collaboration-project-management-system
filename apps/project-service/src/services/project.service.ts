@@ -1,5 +1,10 @@
 import prisma from '../config/prisma';
-import { Project, ProjectMember, ProjectStatus, ProjectMemberRole } from '../../node_modules/.prisma/project-client';
+import { ProjectMember, ProjectStatus, ProjectMemberRole, Prisma } from '../../node_modules/.prisma/project-client';
+
+// Type for Project with members included
+type ProjectWithMembers = Prisma.ProjectGetPayload<{
+  include: { workspace: true; members: true };
+}>;
 
 export interface CreateProjectDto {
   name: string;
@@ -28,7 +33,7 @@ export interface UpdateProjectMemberDto {
 }
 
 class ProjectService {
-  async createProject(data: CreateProjectDto): Promise<Project> {
+  async createProject(data: CreateProjectDto): Promise<ProjectWithMembers> {
     // Check if key already exists
     const existingProject = await prisma.project.findUnique({
       where: { key: data.key },
@@ -73,7 +78,7 @@ class ProjectService {
     return project;
   }
 
-  async getProjectsByWorkspace(workspaceId: string): Promise<Project[]> {
+  async getProjectsByWorkspace(workspaceId: string): Promise<ProjectWithMembers[]> {
     const projects = await prisma.project.findMany({
       where: { workspaceId },
       include: {
@@ -86,7 +91,7 @@ class ProjectService {
     return projects;
   }
 
-  async getProjectsByUser(userId: string): Promise<Project[]> {
+  async getProjectsByUser(userId: string): Promise<ProjectWithMembers[]> {
     const projects = await prisma.project.findMany({
       where: {
         members: {
@@ -105,7 +110,7 @@ class ProjectService {
     return projects;
   }
 
-  async getProjectById(id: string): Promise<Project | null> {
+  async getProjectById(id: string): Promise<ProjectWithMembers | null> {
     const project = await prisma.project.findUnique({
       where: { id },
       include: {
@@ -117,7 +122,7 @@ class ProjectService {
     return project;
   }
 
-  async updateProject(id: string, data: UpdateProjectDto): Promise<Project> {
+  async updateProject(id: string, data: UpdateProjectDto): Promise<ProjectWithMembers> {
     const project = await prisma.project.update({
       where: { id },
       data: {

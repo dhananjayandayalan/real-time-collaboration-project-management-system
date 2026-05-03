@@ -1,5 +1,5 @@
 import { beforeAll, afterAll, beforeEach, afterEach } from 'vitest';
-import { PrismaClient } from '../../../node_modules/.prisma/auth-client';
+import { PrismaClient } from '../../node_modules/.prisma/auth-client';
 
 // Create a test Prisma client
 export const prisma = new PrismaClient({

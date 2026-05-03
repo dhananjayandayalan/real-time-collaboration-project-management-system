@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { useParams, useNavigate, useLocation, Outlet } from 'react-router-dom';
 import { useAppDispatch, useAppSelector } from '@/store';
 import { fetchProject } from '@/store/slices/projectsSlice';
@@ -14,6 +14,18 @@ export const ProjectDetail: React.FC = () => {
   const dispatch = useAppDispatch();
   const { joinProject, leaveProject } = useSocket();
   const { currentProject, isLoading, error } = useAppSelector((state) => state.projects);
+  const { projectViewers } = useAppSelector((state) => state.ui);
+
+  // Get viewers for current project, excluding current user
+  const viewers = useMemo(() => {
+    if (!id) return [];
+    const allViewers = projectViewers[id] || [];
+    return allViewers.map(v => ({
+      id: v.userId,
+      name: v.userName,
+      status: 'online' as const,
+    }));
+  }, [id, projectViewers]);
 
   useEffect(() => {
     if (id) {

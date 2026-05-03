@@ -1,4 +1,4 @@
-import { PrismaClient } from '../../../../node_modules/.prisma/auth-client';
+import { PrismaClient, User, Role, Permission } from '../../../node_modules/.prisma/auth-client';
 import { hashPassword } from '../../utils/password';
 import { generateAccessToken, generateRefreshToken } from '../../utils/jwt';
 
@@ -28,7 +28,7 @@ export interface TestPermission {
 /**
  * Create a test user
  */
-export async function createTestUser(data?: Partial<TestUser>) {
+export async function createTestUser(data?: Partial<TestUser>): Promise<User> {
   const userData = {
     email: data?.email || 'test@example.com',
     password: await hashPassword(data?.password || 'Test@123456'),
@@ -46,7 +46,7 @@ export async function createTestUser(data?: Partial<TestUser>) {
 /**
  * Create multiple test users
  */
-export async function createTestUsers(count: number) {
+export async function createTestUsers(count: number): Promise<User[]> {
   const users = [];
   for (let i = 0; i < count; i++) {
     const user = await createTestUser({
@@ -74,7 +74,7 @@ export async function createTestRole(data?: Partial<TestRole>) {
 /**
  * Create multiple test roles
  */
-export async function createTestRoles() {
+export async function createTestRoles(): Promise<{ admin: Role; manager: Role; developer: Role; viewer: Role }> {
   const roles = await Promise.all([
     prisma.role.create({
       data: { name: 'ADMIN', description: 'Administrator role' },
@@ -118,7 +118,7 @@ export async function createTestPermission(data?: Partial<TestPermission>) {
 /**
  * Create multiple test permissions
  */
-export async function createTestPermissions() {
+export async function createTestPermissions(): Promise<Permission[]> {
   const permissions = await Promise.all([
     createTestPermission({ name: 'user:create', resource: 'user', action: 'create' }),
     createTestPermission({ name: 'user:read', resource: 'user', action: 'read' }),
@@ -170,7 +170,7 @@ export function generateTokensForUser(userId: string, email: string) {
 /**
  * Create a user with a specific role
  */
-export async function createUserWithRole(roleName: string, email?: string) {
+export async function createUserWithRole(roleName: string, email?: string): Promise<{ user: User; role: Role }> {
   const user = await createTestUser({ email });
   const role = await createTestRole({ name: roleName });
   await assignRoleToUser(user.id, role.id);
@@ -206,7 +206,13 @@ export async function createRoleWithPermissions(
 /**
  * Create a complete test setup with users, roles, and permissions
  */
-export async function createCompleteTestSetup() {
+interface TestSetup {
+  permissions: Permission[];
+  roles: { admin: Role; manager: Role; developer: Role; viewer: Role };
+  users: { admin: User; manager: User; developer: User; viewer: User };
+}
+
+export async function createCompleteTestSetup(): Promise<TestSetup> {
   // Create permissions
   const permissions = await createTestPermissions();
 

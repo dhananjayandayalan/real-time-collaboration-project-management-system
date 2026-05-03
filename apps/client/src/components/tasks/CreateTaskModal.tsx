@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useAppDispatch, useAppSelector } from '@/store';
-import { createTask } from '@/store/slices/tasksSlice';
 import { closeModal, addNotification } from '@/store/slices/uiSlice';
+import { useOptimisticTask } from '@/hooks';
 import { Modal, Button, Input } from '@/components/common';
 import { TaskPriority, TaskType } from '@/types';
 import './CreateTaskModal.css';
@@ -11,6 +11,8 @@ export const CreateTaskModal: React.FC = () => {
   const { modalOpen, modalType } = useAppSelector((state) => state.ui);
   const { currentProject } = useAppSelector((state) => state.projects);
   const { isLoading } = useAppSelector((state) => state.tasks);
+  const { createTaskOptimistically } = useOptimisticTask();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
@@ -57,26 +59,29 @@ export const CreateTaskModal: React.FC = () => {
       return;
     }
 
+    setIsSubmitting(true);
+
     try {
-      await dispatch(createTask({
+      // Use optimistic create - task appears immediately, removed on error
+      await createTaskOptimistically({
         title: formData.title.trim(),
         description: formData.description.trim() || undefined,
         projectId: currentProject.id,
         priority: formData.priority,
         type: formData.type,
         dueDate: formData.dueDate ? new Date(formData.dueDate) : undefined,
-      })).unwrap();
+      });
 
       dispatch(addNotification({
         type: 'success',
         message: 'Task created successfully',
       }));
       handleClose();
-    } catch (error) {
-      dispatch(addNotification({
-        type: 'error',
-        message: error as string || 'Failed to create task',
-      }));
+    } catch {
+      // Error notification is handled by useOptimisticTask hook
+      // Rollback is automatic
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -164,7 +169,7 @@ export const CreateTaskModal: React.FC = () => {
           <Button type="button" variant="ghost" onClick={handleClose}>
             Cancel
           </Button>
-          <Button type="submit" variant="primary" isLoading={isLoading}>
+          <Button type="submit" variant="primary" isLoading={isLoading || isSubmitting}>
             Create Task
           </Button>
         </div>

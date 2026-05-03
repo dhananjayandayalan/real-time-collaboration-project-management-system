@@ -78,7 +78,7 @@ describe('AuthService', () => {
         `refresh_token:${result.user.id}`
       );
 
-      expect(storedToken).toBe(result.refreshToken);
+      expect(storedToken).toBe(result.tokens.refreshToken);
     });
   });
 

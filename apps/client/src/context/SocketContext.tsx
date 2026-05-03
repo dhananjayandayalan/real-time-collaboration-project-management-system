@@ -15,8 +15,28 @@ import {
   userStoppedTyping,
   addNotification,
 } from '@/store/slices/uiSlice';
+import type { RoomViewer } from '@/store/slices/uiSlice';
 import type { Task, TaskComment, UserPresence, TypingUser } from '@/types';
 import { SocketContext } from './socketContextHelper';
+
+// Room events from server
+interface RoomMembersEvent {
+  roomType: 'project' | 'task';
+  roomId: string;
+  members: RoomViewer[];
+}
+
+interface RoomUserJoinedEvent {
+  roomType: 'project' | 'task';
+  roomId: string;
+  user: RoomViewer;
+}
+
+interface RoomUserLeftEvent {
+  roomType: 'project' | 'task';
+  roomId: string;
+  userId: string;
+}
 
 interface SocketProviderProps {
   children: React.ReactNode;
@@ -76,7 +96,7 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
       }
     });
 
-    // Task events
+    // Task events with notifications
     newSocket.on('task:created', (task: Task) => {
       dispatch(taskCreated(task));
       // Only show notification if another user created the task
@@ -189,6 +209,31 @@ export const SocketProvider: React.FC<SocketProviderProps> = ({ children }) => {
 
     newSocket.on('typing:stopped', ({ userId, taskId }: { userId: string; taskId: string }) => {
       dispatch(userStoppedTyping({ userId, taskId }));
+    });
+
+    // Room presence events
+    newSocket.on('room:members', (data: RoomMembersEvent) => {
+      if (data.roomType === 'project') {
+        dispatch(setProjectViewers({ projectId: data.roomId, viewers: data.members }));
+      } else if (data.roomType === 'task') {
+        dispatch(setTaskViewers({ taskId: data.roomId, viewers: data.members }));
+      }
+    });
+
+    newSocket.on('room:userJoined', (data: RoomUserJoinedEvent) => {
+      if (data.roomType === 'project') {
+        dispatch(userJoinedProject({ projectId: data.roomId, user: data.user }));
+      } else if (data.roomType === 'task') {
+        dispatch(userJoinedTask({ taskId: data.roomId, user: data.user }));
+      }
+    });
+
+    newSocket.on('room:userLeft', (data: RoomUserLeftEvent) => {
+      if (data.roomType === 'project') {
+        dispatch(userLeftProject({ projectId: data.roomId, userId: data.userId }));
+      } else if (data.roomType === 'task') {
+        dispatch(userLeftTask({ taskId: data.roomId, userId: data.userId }));
+      }
     });
 
     // Cleanup
